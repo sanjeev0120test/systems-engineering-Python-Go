@@ -1,4 +1,4 @@
-# Step 0 — Windows helper (creates venv; use WSL for Linux/automation modules).
+# Step 0 - Windows helper (creates venv; use WSL for Linux/automation modules).
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $Root
@@ -22,7 +22,9 @@ if (-not (Test-Path ".venv")) {
 
 Write-Host ""
 Write-Host "Windows venv ready." -ForegroundColor Green
-Write-Host "For subprocess/Linux modules, use WSL terminal:" -ForegroundColor Yellow
+Write-Host "Next: .\check.ps1 0   (must print PASS)" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "For Linux subprocess and Go steps, use WSL:" -ForegroundColor Yellow
 Write-Host "  wsl"
 Write-Host "  cd /mnt/c/dev/systems-engineering-Python-Go"
 Write-Host "  ./setup.sh && ./check.sh 0"

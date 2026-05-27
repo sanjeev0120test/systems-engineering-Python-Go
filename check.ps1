@@ -1,4 +1,4 @@
-# Windows check helper — mirrors check.sh for Python steps 0–31.
+# Windows check helper - mirrors check.sh for Python steps 0-31.
 param(
     [Parameter(Mandatory = $true)]
     [string]$Step
@@ -17,7 +17,7 @@ if (-not (Test-Path $Python)) {
 
 function Pass($n) {
     Write-Host ""
-    Write-Host "PASS: Step $n complete — see START_HERE.md for next step" -ForegroundColor Green
+    Write-Host "PASS: Step $n complete - see START_HERE.md for next step" -ForegroundColor Green
     exit 0
 }
 
@@ -28,7 +28,6 @@ function Fail($n) {
 }
 
 $testPaths = @{
-    "0"  = $null
     "1"  = "python/01_python_basics/step_01_variables/test_lesson.py"
     "2"  = "python/01_python_basics/step_02_control_flow/test_lesson.py"
     "3"  = "python/01_python_basics/step_03_functions/test_lesson.py"
@@ -62,6 +61,12 @@ $testPaths = @{
     "31" = "python/25_mini_platform_engineering/test_lesson.py"
 }
 
+if ($Step -eq "0") {
+    & $Python -c "import pytest, yaml, requests, fastapi; from python.common.logging_setup import new_trace_id; from python.common.paths import sample_data_path; assert sample_data_path('logs','access.log').exists(); print('Environment OK')"
+    if ($LASTEXITCODE -ne 0) { Fail 0 }
+    Pass 0
+}
+
 if ($Step -eq "all") {
     & $Python -m pytest python/ -q
     if ($LASTEXITCODE -ne 0) { Fail $Step }
@@ -69,26 +74,14 @@ if ($Step -eq "all") {
     exit 0
 }
 
-if ($Step -ge "32") {
-    Write-Host "Go steps 32-36: use WSL — wsl ./check.sh $Step"
+if ($Step -match '^\d+$' -and [int]$Step -ge 32) {
+    Write-Host "Go steps 32-36: use WSL - wsl ./check.sh $Step"
     exit 1
 }
 
 if (-not $testPaths.ContainsKey($Step)) {
     Write-Host "Unknown step: $Step"
     exit 1
-}
-
-if ($Step -eq "0") {
-    & $Python -c @"
-import pytest, yaml, requests, fastapi
-from python.common.logging_setup import new_trace_id
-from python.common.paths import sample_data_path
-assert sample_data_path('logs','access.log').exists()
-print('Environment OK')
-"@
-    if ($LASTEXITCODE -ne 0) { Fail 0 }
-    Pass 0
 }
 
 & $Python -m pytest $testPaths[$Step] -q

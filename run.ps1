@@ -1,4 +1,4 @@
-# Windows run helper — mirrors run.sh for Python steps.
+# Windows run helper - mirrors run.sh for Python steps.
 param(
     [Parameter(Mandatory = $true)]
     [string]$Step,
@@ -60,8 +60,8 @@ if ($Step -eq "0") {
     exit 1
 }
 
-if ($Step -ge "32") {
-    Write-Host "Go steps 32-36: use WSL — wsl ./run.sh $Step"
+if ($Step -match '^\d+$' -and [int]$Step -ge 32) {
+    Write-Host "Go steps 32-36: use WSL - wsl ./run.sh $Step"
     exit 1
 }
 
