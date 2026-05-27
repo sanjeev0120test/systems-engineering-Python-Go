@@ -35,4 +35,4 @@ python -m pip install -r requirements.txt
 
 echo ""
 echo "Setup complete. Verify with: ./check.sh 0"
-echo "Start learning: open START_HERE.md → Step 1 → ./run.sh 1"
+echo "Start learning: open README.md → Step 1 → ./run.sh 1"

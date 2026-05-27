@@ -81,7 +81,7 @@ case "$STEP" in
   35) (cd go/04_worker_pool && go run .) ;;
   36) (cd go/05_log_processor && go run .) ;;
   *)
-    echo "Unknown step: $STEP (see START_HERE.md or docs/STEP_INDEX.md)"
+    echo "Unknown step: $STEP (see README.md step index)"
     exit 1
     ;;
 esac

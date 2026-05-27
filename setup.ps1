@@ -23,6 +23,7 @@ if (-not (Test-Path ".venv")) {
 Write-Host ""
 Write-Host "Windows venv ready." -ForegroundColor Green
 Write-Host "Next: .\check.ps1 0   (must print PASS)" -ForegroundColor Cyan
+Write-Host "Then open README.md and start Step 1 with .\run.ps1 1" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "For Linux subprocess and Go steps, use WSL:" -ForegroundColor Yellow
 Write-Host "  wsl"

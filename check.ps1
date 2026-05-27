@@ -17,7 +17,7 @@ if (-not (Test-Path $Python)) {
 
 function Pass($n) {
     Write-Host ""
-    Write-Host "PASS: Step $n complete - see START_HERE.md for next step" -ForegroundColor Green
+    Write-Host "PASS: Step $n complete - see README.md step index for next step" -ForegroundColor Green
     exit 0
 }
 

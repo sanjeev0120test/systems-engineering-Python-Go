@@ -20,7 +20,7 @@ export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 pass() {
   echo ""
-  echo "PASS: Step $STEP complete — open START_HERE.md for Step $((STEP + 1))"
+  echo "PASS: Step $STEP complete — see README.md step index for Step $((STEP + 1))"
   exit 0
 }
 
@@ -47,7 +47,7 @@ go_test_step() {
 case "$STEP" in
   0)
     echo "Checking environment ..."
-    [ -f START_HERE.md ] || { echo "Missing START_HERE.md"; fail; }
+    [ -f README.md ] || { echo "Missing README.md"; fail; }
     python -c "import pytest, yaml, requests, fastapi" || { echo "Run ./setup.sh first"; fail; }
     python -c "from python.common.logging_setup import new_trace_id; assert len(new_trace_id())==16"
     python -c "from python.common.paths import sample_data_path; assert sample_data_path('logs','access.log').exists()"

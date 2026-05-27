@@ -6,10 +6,10 @@ from pathlib import Path
 
 
 def _find_repo_root(start: Path | None = None) -> Path:
-    """Walk up from cwd until we find START_HERE.md (repo marker)."""
+    """Walk up from cwd until we find README.md (repo marker)."""
     current = (start or Path.cwd()).resolve()
     for candidate in [current, *current.parents]:
-        if (candidate / "START_HERE.md").exists():
+        if (candidate / "README.md").exists() and (candidate / "pyproject.toml").exists():
             return candidate
     here = Path(__file__).resolve()
     return here.parents[2]
