@@ -1,9 +1,35 @@
 # systems-engineering-Python-Go
 
 **Local Python and Go practice lab for Java developers.**  
-Python-first (Steps 1–31, ~90%). Go basics last (Steps 32–36, ~10%). Everything runs on your machine — no cloud required.
+Python-first (Steps 1–31). Go basics last (Steps 32–36). Everything runs on your machine — no cloud.
 
-You already know Java. This repo teaches Python the way platform and backend teams use it: health checks, logs, metrics, alerts, queues, and small services — with heavy Java comparisons in every lesson.
+## Start in 60 seconds
+
+```bash
+./setup.sh && ./check.sh 0    # once — must print PASS
+./run.sh 1                    # learn
+./check.sh 1                  # verify before next step
+```
+
+Windows: `.\setup.ps1` → `.\check.ps1 0` → `.\run.ps1 1` → `.\check.ps1 1`
+
+**Every step is the same:** read `lesson.py` output → edit `exercise.py` → compare `solution.py` → `./check.sh N` must PASS.
+
+## Critical concepts only (what this lab covers)
+
+| Area | Steps | Production skill |
+|------|-------|------------------|
+| Python basics | 1–6 | types, functions, classes, errors (Java → Python) |
+| Files & config | 7–9 | logs, YAML/JSON, structured logging with `trace_id` |
+| Automation | 10 | subprocess with timeouts (replace brittle bash) |
+| HTTP | 11–12 | health client + FastAPI server |
+| Concurrency | 13–15 | when to use threads vs asyncio (GIL trap for Java devs) |
+| Observability | 16–19 | health checks → metrics → log SLIs → alerts |
+| Reliability | 20–22 | rate limit, circuit breaker, job queue |
+| Platform sims | 23–31 | proxy, LB, scheduler, metrics, capstone pipeline |
+| Go basics | 32–36 | syntax, goroutines, HTTP, workers, log parser |
+
+You already know Java. Each `lesson.py` has Java comparisons in comments — this README is your map.
 
 ---
 
@@ -14,18 +40,16 @@ You already know Java. This repo teaches Python the way platform and backend tea
 3. [Prerequisites and setup (Step 0)](#prerequisites-and-setup-step-0)
 4. [Commands reference](#commands-reference)
 5. [Full step index (0–36)](#full-step-index-036)
-6. [Progress checklist](#progress-checklist)
-7. [What each block teaches](#what-each-block-teaches)
-8. [Java to Python cheat sheet](#java-to-python-cheat-sheet)
-9. [Python concepts explained (vs Java)](#python-concepts-explained-vs-java)
-10. [Concurrency: threads vs asyncio vs Go](#concurrency-threads-vs-asyncio-vs-go)
-11. [SLI, SLO, and error budgets](#sli-slo-and-error-budgets)
-12. [Go basics (Steps 32–36)](#go-basics-steps-3236)
-13. [Java → Python → Go comparison](#java--python--go-comparison)
-14. [Real-world use cases](#real-world-use-cases)
-15. [Repository conventions](#repository-conventions)
-16. [Troubleshooting](#troubleshooting)
-17. [Keep practicing](#keep-practicing)
+6. [What each block teaches](#what-each-block-teaches)
+7. [Java to Python cheat sheet](#java-to-python-cheat-sheet)
+8. [Concurrency: threads vs asyncio vs Go](#concurrency-threads-vs-asyncio-vs-go)
+9. [SLI, SLO, and error budgets](#sli-slo-and-error-budgets)
+10. [Go basics (Steps 32–36)](#go-basics-steps-3236)
+11. [Java → Python → Go comparison](#java--python--go-comparison)
+12. [Real-world use cases](#real-world-use-cases)
+13. [Repository conventions](#repository-conventions)
+14. [Troubleshooting](#troubleshooting)
+15. [Keep practicing](#keep-practicing)
 
 ---
 
@@ -169,61 +193,6 @@ Environment variables use the **`LAB_` prefix** (e.g. `LAB_ENVIRONMENT=prod`, `L
 
 ---
 
-## Progress checklist
-
-### Block A — Python for Java developers
-- [ ] Step 0 — Setup
-- [ ] Step 1 — Variables
-- [ ] Step 2 — Control flow
-- [ ] Step 3 — Functions
-- [ ] Step 4 — Classes
-- [ ] Step 5 — Exceptions
-- [ ] Step 6 — Typing
-- [ ] Step 7 — File handling
-- [ ] Step 8 — JSON/YAML
-- [ ] Step 9 — Logging
-
-### Block B — Linux and HTTP
-- [ ] Step 10 — Subprocess
-- [ ] Step 11 — REST client
-- [ ] Step 12 — FastAPI server
-
-### Block C — Concurrency
-- [ ] Step 13 — Concurrency overview
-- [ ] Step 14 — Threading
-- [ ] Step 15 — Asyncio
-
-### Block D — Production mini-systems (critical path)
-- [ ] Step 16 — Health checker
-- [ ] Step 17 — Monitoring agent
-- [ ] Step 18 — Log parser
-- [ ] Step 19 — Alerting engine
-
-### Block E — Reliability
-- [ ] Step 20 — Rate limiter
-- [ ] Step 21 — Retry and circuit breaker
-- [ ] Step 22 — Queue worker
-
-### Block F — Platform simulations
-- [ ] Step 23 — Reverse proxy
-- [ ] Step 24 — Load balancer
-- [ ] Step 25 — Scheduler
-- [ ] Step 26 — Config drift
-- [ ] Step 27 — K8s scheduler sim
-- [ ] Step 28 — Incident simulator
-- [ ] Step 29 — Metrics exporter
-- [ ] Step 30 — Distributed basics
-- [ ] Step 31 — Platform capstone
-
-### Block G — Go basics (~10%)
-- [ ] Step 32 — Go syntax
-- [ ] Step 33 — Go concurrency
-- [ ] Step 34 — Go HTTP server
-- [ ] Step 35 — Go worker pool
-- [ ] Step 36 — Go log processor
-
----
-
 ## What each block teaches
 
 | Steps | You build | Python concepts | Java bridge |
@@ -279,59 +248,6 @@ Environment variables use the **`LAB_` prefix** (e.g. `LAB_ENVIRONMENT=prod`, `L
 - **Observability:** Always log with `trace_id`; avoid bare `print()` in tools.
 - **Reliability:** Timeouts on every network/subprocess call; retries with backoff.
 - **Config:** 12-factor — env vars override YAML files.
-
----
-
-## Python concepts explained (vs Java)
-
-### Step 1 — Variables and f-strings
-- **Java:** `String hostname = uri.getHost();`
-- **Python:** `hostname: str = urlparse(url).hostname`
-- **Why it matters:** f-strings build alert messages: `f"CRITICAL: {host} down"` — like `String.format` but cleaner.
-
-### Step 4 — Classes and dataclasses
-- **Java:** POJO with getters/setters or Lombok `@Data`
-- **Python:** `@dataclass` auto-generates `__init__`, `__repr__`, equality
-- **Why it matters:** Config objects and health-check results are plain data containers.
-
-### Step 5 — Exceptions
-- **Java:** checked vs unchecked exceptions
-- **Python:** only unchecked; use `try/except` and return error values in APIs
-- **Why it matters:** subprocess and HTTP calls fail often — handle gracefully, log, retry.
-
-### Step 6 — Typing
-- **Java:** types enforced at compile time
-- **Python:** hints for humans and tools (`mypy`); runtime still dynamic
-- **Why it matters:** large codebases need hints like Java types for readability.
-
-### Step 7 — File handling
-- **Java:** `try (BufferedReader r = ...) { }`
-- **Python:** `with open(path) as f:` — always use context managers
-- **Why it matters:** log parsing and config loading are daily platform tasks.
-
-### Step 9 — Structured logging
-- **Java:** SLF4J + JSON appenders
-- **Python:** `logging` module + custom JSON formatter + `trace_id`
-- **Why it matters:** searchable logs in production systems need structured fields.
-
-### Step 10 — Subprocess
-- **Java:** `ProcessBuilder` with timeout
-- **Python:** `subprocess.run(..., timeout=30, check=False)` — always set timeout
-- **Why it matters:** shell automation without brittle bash scripts.
-
-### Step 11–12 — HTTP
-- **Java:** RestTemplate / WebClient, Spring Boot controllers
-- **Python:** `requests` for clients, FastAPI for servers
-- **Why it matters:** health checks, webhooks, internal APIs — FastAPI is minimal and fast to write.
-
-### Steps 13–15 — Concurrency
-- **Java:** threads help CPU parallelism
-- **Python:** GIL means threads help **I/O**, not CPU — use `multiprocessing` or Go for CPU-heavy work
-- **Why it matters:** wrong concurrency model = slow or buggy tools.
-
-### Steps 16–19 — Observability chain
-Build a mini pipeline: probe endpoints → collect metrics → parse logs for SLIs → fire deduplicated alerts.
-This mirrors real on-call workflows without needing a cloud account.
 
 ---
 
@@ -448,7 +364,7 @@ log = sample_data_path("logs", "access.log")   # version-controlled inputs
 out = output_path("health_report.json")        # gitignored runtime output
 ```
 
-Shared utilities live in `python/common/` — logging setup, config loader, CLI helpers.
+Shared utilities live in `python/common/` — logging setup, config loader, path helpers.
 
 ### Sample data
 

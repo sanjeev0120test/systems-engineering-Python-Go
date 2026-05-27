@@ -5,10 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from python.common import paths as paths_module
 from python.common.paths import output_path, sample_data_path
 import json
-import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from typing import Any
@@ -25,11 +23,6 @@ solution = mod
 for _name in dir(mod):
     if not _name.startswith("_"):
         globals()[_name] = getattr(mod, _name)
-
-@pytest.fixture(autouse=True)
-def _reset_repo_root(monkeypatch: pytest.MonkeyPatch) -> None:
-    root = Path(__file__).resolve().parents[2]
-    monkeypatch.setattr(paths_module, "REPO_ROOT", root, raising=False)
 
 
 class _HealthHandler(BaseHTTPRequestHandler):

@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from python.common import paths as paths_module
 from python.common.paths import output_path, sample_data_path
 from unittest.mock import patch
 
@@ -19,12 +18,6 @@ solution = mod
 for _name in dir(mod):
     if not _name.startswith("_"):
         globals()[_name] = getattr(mod, _name)
-
-@pytest.fixture(autouse=True)
-def _reset_repo_root(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Keep path helpers anchored to this repo during tests."""
-    root = Path(__file__).resolve().parents[2]
-    monkeypatch.setattr(paths_module, "REPO_ROOT", root, raising=False)
 
 
 def test_read_log_lines_reads_access_log() -> None:

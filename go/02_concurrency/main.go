@@ -10,32 +10,27 @@ func Square(n int) int {
 	return n * n
 }
 
-// SumConcurrent adds integers using one goroutine per value and a channel.
+// SumConcurrent adds integers using goroutines and a mutex (like synchronized in Java).
 func SumConcurrent(nums []int) int {
 	if len(nums) == 0 {
 		return 0
 	}
 
-	ch := make(chan int, len(nums))
+	var mu sync.Mutex
+	total := 0
 	var wg sync.WaitGroup
 
 	for _, n := range nums {
 		wg.Add(1)
 		go func(v int) {
 			defer wg.Done()
-			ch <- v
+			mu.Lock()
+			total += v
+			mu.Unlock()
 		}(n)
 	}
 
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	total := 0
-	for v := range ch {
-		total += v
-	}
+	wg.Wait()
 	return total
 }
 

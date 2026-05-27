@@ -5,8 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from python.common import paths as paths_module
-from python.common.paths import output_path, sample_data_path
+from python.common.paths import sample_data_path
 import json
 
 from python.step_loader import load_solution

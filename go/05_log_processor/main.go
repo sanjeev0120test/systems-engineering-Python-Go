@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -113,8 +114,12 @@ func ParseAccessLog(path string, workers int) (Summary, error) {
 	return summary, nil
 }
 
+func defaultLogPath() string {
+	return filepath.Join("..", "..", "sample_data", "logs", "access.log")
+}
+
 func main() {
-	path := "../../sample_data/logs/access.log"
+	path := defaultLogPath()
 	summary, err := ParseAccessLog(path, 4)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "parse failed: %v\n", err)
