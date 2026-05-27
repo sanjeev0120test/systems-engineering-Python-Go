@@ -1,0 +1,22 @@
+# Alert rules evaluated against merged metrics + log SLIs (Step 19).
+rules:
+  - name: high_error_rate
+    metric: error_rate
+    condition: ">"
+    threshold: 0.05
+    severity: critical
+    description: HTTP 5xx error rate above SLO threshold
+
+  - name: high_latency_p95
+    metric: latency_p95_ms
+    condition: ">"
+    threshold: 200
+    severity: warning
+    description: p95 latency above 200ms budget
+
+  - name: disk_usage_high
+    metric: disk_percent
+    condition: ">"
+    threshold: 85
+    severity: warning
+    description: Disk utilization critically high

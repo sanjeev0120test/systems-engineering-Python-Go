@@ -1,0 +1,8 @@
+{
+  "host": "localhost",
+  "cpu_percent": 42.5,
+  "memory_percent": 68.2,
+  "disk_percent": 55.0,
+  "error_rate": 0.25,
+  "latency_p95_ms": 250.0
+}

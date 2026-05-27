@@ -1,0 +1,19 @@
+# Sample service config — mirrors a microservice manifest used by health checks.
+service_name: payment-api
+environment: staging
+check_interval_seconds: 10
+tcp_check_port: 8080
+
+endpoints:
+  - name: health
+    url: http://127.0.0.1:8080/health
+    timeout_seconds: 2
+  - name: ready
+    url: http://127.0.0.1:8080/ready
+    timeout_seconds: 2
+
+hosts:
+  - hostname: web-01
+    ip: 127.0.0.1
+  - hostname: cache-02
+    ip: 127.0.0.1
