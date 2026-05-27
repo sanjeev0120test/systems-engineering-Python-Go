@@ -14,7 +14,7 @@ Java developer notes
 - Instance methods take `self` as first param (like implicit `this` in Java instance methods).
 - No `public`/`private` keywords — convention: prefix `_name` for internal use.
 
-SRE context
+Production context
 -----------
 CMDB entries, Kubernetes node lists, and YAML host blocks all map to inventory objects.
 Model them once with dataclasses instead of passing raw dicts through every script.

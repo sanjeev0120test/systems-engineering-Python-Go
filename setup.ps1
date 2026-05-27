@@ -1,4 +1,4 @@
-# Step 0 — Windows helper (creates venv; use WSL for Linux/SRE modules).
+# Step 0 — Windows helper (creates venv; use WSL for Linux/automation modules).
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $Root

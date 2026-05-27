@@ -36,6 +36,6 @@ Implement `exercise.py`:
 | MDC | `logger.info(..., extra={"trace_id": ...})` |
 | `log.warn` | `logger.warning(...)` |
 
-## SRE context
+## Production context
 
 During incidents, grep-friendly text logs help on a laptop; JSON logs feed Loki, Elasticsearch, and Cloud Logging. Correlation IDs connect the health checker, alert, and remediation script in one trace.

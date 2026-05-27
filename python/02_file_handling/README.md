@@ -1,6 +1,6 @@
 # Step 7 — File handling
 
-Read and write log files the way production SRE tooling does: context managers, explicit UTF-8, and repo-root paths that work everywhere.
+Read and write log files the way production production tooling does: context managers, explicit UTF-8, and repo-root paths that work everywhere.
 
 ## Goals
 
@@ -36,6 +36,6 @@ Implement the functions in `exercise.py`:
 | `try-with-resources` | `with path.open(...) as f:` |
 | `Paths.get(a, b)` | `Path(a) / b` or `sample_data_path("a", "b")` |
 
-## SRE context
+## Production context
 
 Access logs drive error-rate SLIs, latency dashboards, and incident timelines. The same file patterns apply to config snapshots, health reports, and alert exports in later steps.

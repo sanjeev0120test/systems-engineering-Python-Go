@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Synchronous request/response cannot absorb traffic spikes. Queues decouple producers
 # from consumers: API returns 202 Accepted, workers drain backlog at sustainable rate.
 # Dead-letter queues (DLQ) preserve poison messages for inspection instead of infinite

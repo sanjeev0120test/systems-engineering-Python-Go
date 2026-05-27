@@ -31,7 +31,7 @@ def latest_metrics_path() -> Any:
 def load_agent_config() -> dict[str, Any]:
     """Load poll interval from service.yaml with optional env override."""
     config = load_service_config(service_config_path())
-    interval_raw = env("SRE_CHECK_INTERVAL_SECONDS") or config.get("check_interval_seconds", 10)
+    interval_raw = env("LAB_CHECK_INTERVAL_SECONDS") or config.get("check_interval_seconds", 10)
     return {"check_interval_seconds": int(interval_raw)}
 
 
@@ -62,13 +62,13 @@ def _handle_shutdown(signum: int, frame: Any) -> None:  # noqa: ARG001
 
 
 def run_agent(*, interval_seconds: int | None = None, once: bool | None = None) -> None:
-    """Poll metrics until Ctrl+C or SRE_AGENT_ONCE=1."""
+    """Poll metrics until Ctrl+C or LAB_AGENT_ONCE=1."""
     global _shutdown_requested
     _shutdown_requested = False
 
     config = load_agent_config()
     interval = interval_seconds if interval_seconds is not None else config["check_interval_seconds"]
-    run_once = once if once is not None else env("SRE_AGENT_ONCE") == "1"
+    run_once = once if once is not None else env("LAB_AGENT_ONCE") == "1"
 
     signal.signal(signal.SIGINT, _handle_shutdown)
     if hasattr(signal, "SIGTERM"):

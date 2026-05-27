@@ -21,7 +21,7 @@ def env(key: str, default: str | None = None) -> str | None:
     return os.environ.get(key, default)
 
 
-def load_service_config(yaml_path: Path, env_prefix: str = "SRE_") -> dict[str, Any]:
+def load_service_config(yaml_path: Path, env_prefix: str = "LAB_") -> dict[str, Any]:
     """Merge YAML file with env overrides."""
     config = load_yaml(yaml_path)
     for key in list(config.keys()):

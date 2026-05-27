@@ -9,12 +9,12 @@ from typing import Any
 from python.common.logging_setup import get_logger, new_trace_id
 
 
-def build_text_logger(name: str = "sre.text") -> logging.Logger:
+def build_text_logger(name: str = "lab.text") -> logging.Logger:
     """Human-readable logs for local debugging."""
     return get_logger(name, level=logging.DEBUG, json_logs=False)
 
 
-def build_json_logger(name: str = "sre.json") -> logging.Logger:
+def build_json_logger(name: str = "lab.json") -> logging.Logger:
     """One JSON object per line — ready for Loki/ELK/GCP."""
     return get_logger(name, level=logging.INFO, json_logs=True)
 

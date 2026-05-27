@@ -14,7 +14,7 @@ Java developer notes
 - `NotRequired[str]` marks optional keys (like `@JsonIgnoreProperties(ignoreUnknown=true)`).
 - Run `mypy` in CI on production code; here we learn the patterns first.
 
-SRE context
+Production context
 -----------
 Metrics agents emit JSON blobs. TypedDict + Optional makes invalid payloads visible
 at review time instead of failing silently in production dashboards.

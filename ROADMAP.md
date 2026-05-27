@@ -24,7 +24,7 @@ Copy this list into your notes or mark checkboxes here as you go.
 - [ ] Step 14 — Threading
 - [ ] Step 15 — Asyncio
 
-## Block D — SRE mini-systems (critical path)
+## Block D — core production mini-systems (critical path)
 - [ ] Step 16 — Health checker
 - [ ] Step 17 — Monitoring agent
 - [ ] Step 18 — Log parser

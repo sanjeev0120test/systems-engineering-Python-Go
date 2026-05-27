@@ -28,6 +28,6 @@ Evaluate YAML alert rules against metrics and deduplicate in SQLite.
 
 Sample data triggers **high_error_rate** (0.25) and **high_latency_p95** (250 ms).
 
-## SRE context
+## Production context
 
 Dedup keys prevent paging on-call every 30 seconds for the same incident. Production systems use similar logic in Alertmanager, PagerDuty, or Opsgenie.

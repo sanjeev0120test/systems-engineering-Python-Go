@@ -40,7 +40,7 @@ def test_load_service_config_from_sample() -> None:
 
 
 def test_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SRE_ENVIRONMENT", "prod")
+    monkeypatch.setenv("LAB_ENVIRONMENT", "prod")
     config = mod.load_service_config_from_sample()
     assert config["environment"] == "prod"
 

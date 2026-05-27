@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Platform engineering ships paved roads: standardized lint/test/deploy pipelines so
 # product teams don't reinvent CI/CD. A single report artifact (like this lesson writes
 # to sample_data/output/) mirrors build logs, deployment records, and change tickets.

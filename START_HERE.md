@@ -1,6 +1,6 @@
-# Start Here — SRE/DevOps Python Practice Lab
+# Start Here — systems engineering Python Practice Lab
 
-**You know Java. You are learning Python for SRE/DevOps. Go comes last (Steps 32–36).**
+**You know Java. You are learning Python for systems engineering. Go comes last (Steps 32–36).**
 
 Open this repo in Cursor → set terminal to **WSL (Ubuntu)** → follow steps in order.
 

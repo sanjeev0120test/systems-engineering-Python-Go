@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Retries without backoff create retry storms: a blip on a dependency becomes an outage
 # when every client hammers it simultaneously. Exponential backoff + jitter spreads load.
 # Circuit breakers fail fast when a dependency is clearly unhealthy — preserving threads,
@@ -42,7 +42,7 @@ def main() -> None:
     logger.info("Call result: %s after %s attempts", result, service.call_count)
     logger.info("Breaker state: %s", breaker.state.value)
     logger.info(
-        "SRE rule: retry transient errors, break on sustained failure, alert on open circuits."
+        "Production rule: retry transient errors, break on sustained failure, alert on open circuits."
     )
 
 

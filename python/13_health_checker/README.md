@@ -26,6 +26,6 @@ Implement `exercise.py` using:
 - `sample_data_path` / `output_path` from `python.common.paths`
 - `get_logger` / `new_trace_id` from `python.common.logging_setup`
 
-## SRE context
+## Production context
 
 Health checkers run on a schedule (cron, Kubernetes liveness probes, or agents). Retries distinguish transient network blips from real outages. JSON reports feed alerting (Step 19) and incident dashboards.

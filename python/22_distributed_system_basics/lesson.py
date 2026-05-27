@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Singleton workers (queue consumers, cron leaders, shard coordinators) must have exactly
 # one active leader. Split-brain doubles processing; no leader stalls the pipeline.
 # Heartbeats + leases (etcd, Consul, K8s Lease API) detect failed nodes and trigger failover.

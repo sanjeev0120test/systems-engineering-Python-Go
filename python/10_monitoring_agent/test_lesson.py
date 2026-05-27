@@ -37,7 +37,7 @@ def test_load_agent_config() -> None:
 
 
 def test_load_agent_config_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("SRE_CHECK_INTERVAL_SECONDS", "5")
+    monkeypatch.setenv("LAB_CHECK_INTERVAL_SECONDS", "5")
     config = mod.load_agent_config()
     assert config["check_interval_seconds"] == 5
 
@@ -66,9 +66,9 @@ def test_run_agent_once_exits(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     assert target.exists()
 
 
-def test_run_agent_respects_sre_agent_once_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_agent_respects_lab_agent_once_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     target = tmp_path / "latest.json"
-    monkeypatch.setenv("SRE_AGENT_ONCE", "1")
+    monkeypatch.setenv("LAB_AGENT_ONCE", "1")
     monkeypatch.setattr(mod, "latest_metrics_path", lambda: target)
     mod.run_agent(interval_seconds=60)
     assert target.exists()

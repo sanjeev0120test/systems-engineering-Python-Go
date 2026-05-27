@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Reverse proxies (nginx, Envoy, HAProxy) terminate TLS, add auth, enforce rate limits,
 # and route traffic without exposing backend topology. During incidents you can drain
 # nodes by removing them from the proxy pool while keeping the VIP stable.

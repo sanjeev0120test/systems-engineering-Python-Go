@@ -33,7 +33,7 @@ func main() {
 	fmt.Println("Step 32 — Go basics")
 	fmt.Printf("Add(2, 3) = %d\n", Add(2, 3))
 
-	u := User{Name: "sre", Role: "oncall"}
+	u := User{Name: "alex", Role: "oncall"}
 	fmt.Println(Greet(u))
 
 	result, err := Divide(10, 4)

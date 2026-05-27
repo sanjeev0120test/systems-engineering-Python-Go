@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Unbounded traffic causes cascading failures: DB connection pools exhaust, latency
 # spikes, and retries amplify load. Rate limits protect your service and neighbors.
 # Token buckets allow short bursts (good for human traffic) while enforcing sustained

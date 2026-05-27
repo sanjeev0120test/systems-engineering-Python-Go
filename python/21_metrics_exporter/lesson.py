@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # You can't SLO what you don't measure. Prometheus pull model (/metrics scrape) is the
 # de facto standard for service telemetry. RED metrics (Rate, Errors, Duration) on every
 # handler give you burn-rate alerts before customers open tickets.

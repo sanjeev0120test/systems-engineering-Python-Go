@@ -6,7 +6,7 @@ Concurrently parse `sample_data/logs/access.log` and aggregate status and method
 
 - Streaming file reads with `bufio.Scanner`
 - Worker pool over real log data
-- SRE-style error-rate summary (4xx/5xx lines)
+- production-style error-rate summary (4xx/5xx lines)
 
 ## Commands
 

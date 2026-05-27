@@ -22,6 +22,6 @@ Parse nginx-style access logs and compute SLI metrics.
 
 The bundled `access.log` has 8 requests, 2 errors (500 + 503), error rate **0.25**, p95 latency **250 ms**.
 
-## SRE context
+## Production context
 
 Error rate and latency p95 are classic SLIs. Alert rules in Step 19 reference these metric names directly.

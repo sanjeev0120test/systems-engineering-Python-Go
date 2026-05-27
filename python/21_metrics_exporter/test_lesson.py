@@ -23,8 +23,8 @@ def test_metrics_payload_contains_series() -> None:
     body, content_type = metrics_payload()
     text = body.decode("utf-8")
     assert content_type.startswith("text/plain")
-    assert "sre_http_requests_total" in text
-    assert "sre_request_latency_seconds" in text
+    assert "lab_http_requests_total" in text
+    assert "lab_request_latency_seconds" in text
 
 
 def test_record_request_increments_counter() -> None:

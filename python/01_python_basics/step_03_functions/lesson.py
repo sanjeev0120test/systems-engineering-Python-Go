@@ -15,7 +15,7 @@ Java developer notes
 - Functions are first-class: pass them as arguments later (Step 13+ concurrency).
 - No method overloading — use default parameters or distinct function names.
 
-SRE context
+Production context
 -----------
 Disk-full incidents are common P1s. Encapsulate threshold logic once so every
 monitoring script uses the same numbers (avoid alert fatigue from inconsistent thresholds).

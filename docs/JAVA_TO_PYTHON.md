@@ -1,4 +1,4 @@
-# Java → Python Cheat Sheet (for SRE/DevOps)
+# Java → Python Cheat Sheet (for systems engineering)
 
 | Java | Python | Notes |
 |------|--------|-------|
@@ -17,7 +17,7 @@
 | `String.format` | f-strings `f"{x}"` | Preferred in modern Python |
 | checked exceptions | none | Document in docstrings instead |
 
-## SRE mindset shift
+## Production engineering mindset shift
 
 - **Automation:** Python replaces bash for anything with logic branches or JSON output.
 - **Observability:** Always log with `trace_id`; never bare `print()` in tools.

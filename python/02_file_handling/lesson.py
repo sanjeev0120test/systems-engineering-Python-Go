@@ -1,5 +1,5 @@
 """
-Step 7 — File handling for SRE workflows
+Step 7 — File handling for automation workflows
 ========================================
 
 Read and write logs safely using `with open(...)` and `pathlib.Path`.
@@ -28,7 +28,7 @@ from python.common.paths import REPO_ROOT
 # Always pass encoding="utf-8" — default locale encoding breaks in CI/containers.
 
 # ---------------------------------------------------------------------------
-# SRE USE CASES
+# PRODUCTION USE CASES
 # ---------------------------------------------------------------------------
 # - Tail and summarize access logs during incident triage
 # - Write health-check reports under sample_data/output/ (gitignored artifacts)

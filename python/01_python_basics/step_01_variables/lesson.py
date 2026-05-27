@@ -1,4 +1,4 @@
-"""Step 1 — Variables, types, and f-strings for SRE string parsing.
+"""Step 1 — Variables, types, and f-strings for systems string parsing.
 
 Run from repo root:
     ./run.sh 1
@@ -14,7 +14,7 @@ Java developer notes
 - f-strings (`f"host={hostname}"`) replace String.format / printf for most cases.
 - `None` is like Java `null`; use `str | None` or `Optional[str]` for nullable returns.
 
-SRE context
+Production context
 -----------
 On-call engineers constantly parse hostnames from URLs, alert text, and log lines.
 Getting the hostname wrong routes pages to the wrong team or fires duplicate alerts.

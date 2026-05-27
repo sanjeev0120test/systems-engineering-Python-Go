@@ -13,7 +13,7 @@
 
 ## What you will learn
 
-| Construct | SRE use |
+| Construct | Production use |
 |-----------|---------|
 | `if` / `elif` | Route alerts by severity |
 | `for` | Iterate probe results |

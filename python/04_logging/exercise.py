@@ -6,11 +6,11 @@ import logging
 from typing import Any
 
 
-def build_text_logger(name: str = "sre.text") -> logging.Logger:
+def build_text_logger(name: str = "lab.text") -> logging.Logger:
     raise NotImplementedError("Use get_logger(..., json_logs=False) from python.common.logging_setup.")
 
 
-def build_json_logger(name: str = "sre.json") -> logging.Logger:
+def build_json_logger(name: str = "lab.json") -> logging.Logger:
     raise NotImplementedError("Use get_logger(..., json_logs=True).")
 
 

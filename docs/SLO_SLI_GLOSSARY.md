@@ -12,4 +12,4 @@
 
 - SLOs should be user-journey based (checkout success), not server CPU alone.
 - Multi-window burn alerts catch fast and slow budget consumption.
-- Error budgets align product and SRE: when budget is gone, stop risky releases.
+- Error budgets align product and engineering teams: when budget is gone, stop risky releases.

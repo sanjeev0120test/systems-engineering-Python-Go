@@ -14,7 +14,7 @@ def host_metrics_path() -> Path:
     raise NotImplementedError("Return sample_data_path('metrics', 'host_metrics.json').")
 
 
-def load_service_config_from_sample(env_prefix: str = "SRE_") -> dict[str, Any]:
+def load_service_config_from_sample(env_prefix: str = "LAB_") -> dict[str, Any]:
     raise NotImplementedError("Use load_service_config from python.common.config_loader.")
 
 

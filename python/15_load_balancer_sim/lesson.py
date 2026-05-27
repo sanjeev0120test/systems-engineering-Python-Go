@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Load balancers spread traffic so no single instance saturates. Round-robin is simple
 # and fair when requests are homogeneous; weighted RR or least-conn work better when
 # instance sizes or latency differ. Always health-check backends — routing to dead nodes

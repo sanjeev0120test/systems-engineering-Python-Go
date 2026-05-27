@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Config drift — when running systems diverge from declared intent — causes mysterious
 # incidents: one pod still on old timeout values, a firewall rule edited by hand, a
 # feature flag flipped in prod but not staging. GitOps + automated diff alerts catch

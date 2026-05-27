@@ -1,4 +1,4 @@
-"""Reusable argparse patterns for SRE CLI tools."""
+"""Reusable argparse patterns for CLI automation tools."""
 
 from __future__ import annotations
 

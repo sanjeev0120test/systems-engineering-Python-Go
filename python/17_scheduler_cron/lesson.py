@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Cron jobs drive backups, certificate rotation, cache warming, and synthetic probes.
 # Missed or overlapping runs cause data gaps and thundering herds. Treat schedulers as
 # production services: monitor last_success_timestamp, alert on missed schedules.

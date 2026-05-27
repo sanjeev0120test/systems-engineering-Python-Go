@@ -20,7 +20,7 @@ python exercise.py
 
 ## What you will learn
 
-| Python | Java analogy | SRE use |
+| Python | Java analogy | Production use |
 |--------|--------------|---------|
 | `hostname: str` | `String hostname` | Type hints for readability |
 | f-strings | `String.format` | Alert and log messages |

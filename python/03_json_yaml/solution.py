@@ -1,4 +1,4 @@
-"""Step 8 solution — JSON and YAML config for SRE services."""
+"""Step 8 solution — JSON and YAML config for service configuration."""
 
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ def host_metrics_path() -> Path:
     return sample_data_path("metrics", "host_metrics.json")
 
 
-def load_service_config_from_sample(env_prefix: str = "SRE_") -> dict[str, Any]:
-    """Load service.yaml with optional SRE_* environment overrides."""
+def load_service_config_from_sample(env_prefix: str = "LAB_") -> dict[str, Any]:
+    """Load service.yaml with optional LAB_* environment overrides."""
     return load_service_config(service_config_path(), env_prefix=env_prefix)
 
 

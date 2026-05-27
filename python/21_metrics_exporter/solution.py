@@ -5,18 +5,18 @@ from __future__ import annotations
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
 REQUEST_COUNT = Counter(
-    "sre_http_requests_total",
+    "lab_http_requests_total",
     "Total HTTP requests observed by the demo service",
     ["method", "endpoint", "status"],
 )
 
 IN_FLIGHT = Gauge(
-    "sre_in_flight_requests",
+    "lab_in_flight_requests",
     "Number of HTTP requests currently being processed",
 )
 
 REQUEST_LATENCY = Histogram(
-    "sre_request_latency_seconds",
+    "lab_request_latency_seconds",
     "Request latency in seconds",
     ["endpoint"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0),

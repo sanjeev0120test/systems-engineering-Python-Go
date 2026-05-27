@@ -13,7 +13,7 @@ Token bucket rate limiting with FastAPI middleware returning HTTP 429.
 
 | File | Purpose |
 |------|---------|
-| `lesson.py` | SRE context and demo |
+| `lesson.py` | Production context and demo |
 | `exercise.py` | Your implementation |
 | `solution.py` | Token bucket + middleware |
 | `test_lesson.py` | pytest |

@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Async agents poll hundreds of endpoints on one thread — lower memory than
 # hundreds of threads. FastAPI and modern observability tools are async-native.
 

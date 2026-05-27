@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # On-call runbooks often say: "run ps aux | grep foo" or "check df -h".
 # subprocess lets you automate those checks in health scripts and agents.
 

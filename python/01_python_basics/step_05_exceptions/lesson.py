@@ -15,7 +15,7 @@ Java developer notes
 - EAFP = "Easier to Ask Forgiveness than Permission" — try the operation, catch failures.
 - LBYL = "Look Before You Leap" — guard clauses before acting (closer to Java null checks).
 
-SRE context
+Production context
 -----------
 Config from env vars, YAML, and feature flags is often partial or wrong in staging.
 Robust parsers default safely and log structured errors instead of crashing the agent.

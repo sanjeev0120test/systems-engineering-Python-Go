@@ -1,7 +1,7 @@
 # Step 5 — Exceptions
 
 **Time:** ~20 minutes  
-**Goal:** Parse messy SRE config safely using EAFP and LBYL patterns.
+**Goal:** Parse messy service config safely using EAFP and LBYL patterns.
 
 ## Run
 

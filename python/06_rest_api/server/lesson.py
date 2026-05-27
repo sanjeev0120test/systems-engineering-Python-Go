@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Kubernetes uses /health (liveness) vs /ready (readiness) to decide restart vs
 # remove from load balancer. Every microservice exposes both.
 

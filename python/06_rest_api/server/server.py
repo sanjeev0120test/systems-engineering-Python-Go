@@ -12,7 +12,7 @@ import uvicorn
 from solution import app
 
 if __name__ == "__main__":
-    print("Starting SRE Lab API on http://127.0.0.1:8080")
+    print("Starting Practice Lab API on http://127.0.0.1:8080")
     print("  GET /health  — liveness")
     print("  GET /ready   — readiness")
     print("Press Ctrl+C to stop.")

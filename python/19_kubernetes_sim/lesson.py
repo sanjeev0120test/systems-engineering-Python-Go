@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Pending pods (unschedulable) mean your cluster is out of capacity or misconfigured
 # (taints, node selectors, resource requests too large). Scheduler decisions affect
 # blast radius — spreading replicas across nodes/AZs avoids single-host failures.

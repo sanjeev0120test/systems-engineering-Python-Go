@@ -35,7 +35,7 @@ def test_new_trace_id_length() -> None:
 
 
 def test_build_text_logger_format(capsys: pytest.CaptureFixture[str]) -> None:
-    logger = mod.build_text_logger(_unique_name("sre.text"))
+    logger = mod.build_text_logger(_unique_name("lab.text"))
     logger.info("hello text")
     captured = capsys.readouterr().out
     assert "hello text" in captured
@@ -46,7 +46,7 @@ def test_build_text_logger_format(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 def test_build_json_logger_emits_json(capsys: pytest.CaptureFixture[str]) -> None:
-    logger = mod.build_json_logger(_unique_name("sre.json"))
+    logger = mod.build_json_logger(_unique_name("lab.json"))
     trace_id = "abc123def4567890"
     mod.log_health_check(
         logger,
@@ -66,7 +66,7 @@ def test_build_json_logger_emits_json(capsys: pytest.CaptureFixture[str]) -> Non
 
 
 def test_log_health_check_warning_level(capsys: pytest.CaptureFixture[str]) -> None:
-    logger = mod.build_json_logger(_unique_name("sre.json"))
+    logger = mod.build_json_logger(_unique_name("lab.json"))
     mod.log_health_check(
         logger,
         trace_id="trace-warn-001",
@@ -82,7 +82,7 @@ def test_log_health_check_warning_level(capsys: pytest.CaptureFixture[str]) -> N
 
 
 def test_summarize_status_counts(capsys: pytest.CaptureFixture[str]) -> None:
-    logger = mod.build_json_logger(_unique_name("sre.json"))
+    logger = mod.build_json_logger(_unique_name("lab.json"))
     mod.summarize_status_counts(
         logger,
         trace_id="trace-summary-01",

@@ -1,7 +1,7 @@
 [project]
 name = "systems-engineering-python-go"
 version = "0.1.0"
-description = "Local SRE/DevOps practice lab — Python-first, Go basics"
+description = "Local systems engineering practice lab — Python-first, Go basics"
 requires-python = ">=3.11"
 readme = "README.md"
 

@@ -26,7 +26,7 @@ def write_latest_metrics(metrics: dict[str, Any], path: Any | None = None) -> An
 
 
 def run_agent(*, interval_seconds: int | None = None, once: bool | None = None) -> None:
-    raise NotImplementedError("Poll loop with graceful Ctrl+C; honor SRE_AGENT_ONCE=1.")
+    raise NotImplementedError("Poll loop with graceful Ctrl+C; honor LAB_AGENT_ONCE=1.")
 
 
 if __name__ == "__main__":

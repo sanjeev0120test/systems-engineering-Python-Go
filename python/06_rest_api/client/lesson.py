@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Load balancers and k8s probes hit /health repeatedly. Your scripts must
 # handle transient failures (503 during deploy) with retries and bounded timeouts.
 

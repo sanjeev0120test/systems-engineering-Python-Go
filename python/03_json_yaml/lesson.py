@@ -1,5 +1,5 @@
 """
-Step 8 — JSON & YAML for SRE configuration
+Step 8 — JSON & YAML for service configuration
 ==========================================
 
 Parse human-friendly YAML service definitions and machine JSON metrics.
@@ -29,11 +29,11 @@ from python.common.paths import sample_data_path
 # Always validate unexpected types after parsing external files.
 
 # ---------------------------------------------------------------------------
-# SRE USE CASES
+# PRODUCTION USE CASES
 # ---------------------------------------------------------------------------
 # - service.yaml defines health-check endpoints for synthetic monitoring
 # - host_metrics.json feeds capacity alerts (CPU/memory/disk SLIs)
-# - SRE_CHECK_INTERVAL_SECONDS overrides YAML in staging vs prod
+# - LAB_CHECK_INTERVAL_SECONDS overrides YAML in staging vs prod
 # - Alert rules, Prometheus targets, and K8s manifests are all YAML/JSON
 
 
@@ -60,17 +60,17 @@ def demo_load_json_metrics() -> dict:
 def demo_env_override() -> None:
     """Show 12-factor override: env wins over YAML default."""
     path = sample_data_path("configs", "service.yaml")
-    os.environ["SRE_ENVIRONMENT"] = "staging-demo"
-    merged = load_service_config(path, env_prefix="SRE_")
+    os.environ["LAB_ENVIRONMENT"] = "staging-demo"
+    merged = load_service_config(path, env_prefix="LAB_")
     print(f"environment (env override): {merged.get('environment')}")
     print(f"check interval (from YAML): {merged.get('check_interval_seconds')}")
-    del os.environ["SRE_ENVIRONMENT"]
+    del os.environ["LAB_ENVIRONMENT"]
 
 
 def demo_env_helper() -> None:
     """Read optional env vars with defaults — common for secrets/URLs."""
-    timeout = env("SRE_HTTP_TIMEOUT", "5")
-    print(f"HTTP timeout default: {timeout}s (set SRE_HTTP_TIMEOUT to override)")
+    timeout = env("LAB_HTTP_TIMEOUT", "5")
+    print(f"HTTP timeout default: {timeout}s (set LAB_HTTP_TIMEOUT to override)")
 
 
 def main() -> None:

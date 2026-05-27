@@ -1,12 +1,12 @@
 # Step 8 — JSON & YAML
 
-Load service configuration and metrics snapshots — the two formats SRE teams touch daily.
+Load service configuration and metrics snapshots — the two formats platform teams touch daily.
 
 ## Goals
 
 - Parse `sample_data/configs/service.yaml` with `python.common.config_loader`
 - Parse `sample_data/metrics/host_metrics.json` with `json.load`
-- Apply `SRE_*` environment variable overrides (12-factor config)
+- Apply `LAB_*` environment variable overrides (12-factor config)
 - Extract endpoints and capacity signals for monitoring logic
 
 ## Run
@@ -35,6 +35,6 @@ Implement `exercise.py` using:
 | `@ConfigurationProperties` | YAML + `load_service_config()` env merge |
 | `System.getenv` | `env("KEY", default)` |
 
-## SRE context
+## Production context
 
 Health checkers, alert engines, and deploy pipelines all start by reading YAML/JSON config. Environment overrides let the same file run locally and in Kubernetes without edits.

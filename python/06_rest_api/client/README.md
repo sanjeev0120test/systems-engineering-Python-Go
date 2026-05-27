@@ -1,6 +1,6 @@
 # Step 11 — REST API Client
 
-Poll a `/health` endpoint with `requests`, retries, and timeouts — the pattern used in SRE smoke tests and deploy verification.
+Poll a `/health` endpoint with `requests`, retries, and timeouts — the pattern used in health smoke tests and deploy verification.
 
 ## Run
 

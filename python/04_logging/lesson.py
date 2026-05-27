@@ -1,5 +1,5 @@
 """
-Step 9 — Logging for observable SRE tooling
+Step 9 — Logging for observable production tooling
 ============================================
 
 Use the stdlib `logging` module locally, then JSON lines for production aggregators.
@@ -28,7 +28,7 @@ from python.common.logging_setup import JsonFormatter, get_logger, new_trace_id
 # In Python, `extra` keys become attributes on LogRecord — custom formatters read them.
 
 # ---------------------------------------------------------------------------
-# SRE USE CASES
+# PRODUCTION USE CASES
 # ---------------------------------------------------------------------------
 # - Text logs on laptop; JSON logs in staging/prod (same code, different formatter)
 # - trace_id links health checker → alert → ticket during an incident

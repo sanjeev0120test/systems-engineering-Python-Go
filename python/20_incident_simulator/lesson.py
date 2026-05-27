@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Blameless postmortems need an accurate timeline: when alerts fired, when customers
 # noticed, mitigation steps, and resolution. SQLite (or structured logs) preserves
 # ordering and actors — better than scrolling Slack during a sev-1.

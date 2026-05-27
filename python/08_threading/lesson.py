@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Monitoring 50 microservices sequentially takes 50× latency. ThreadPoolExecutor
 # fans out HTTP probes — standard pattern in black-box synthetic monitoring.
 

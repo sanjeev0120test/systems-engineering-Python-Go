@@ -15,7 +15,7 @@ Java developer notes
   use while + manual index, or prefer `for` with `enumerate`.
 - Dict `.get(key, default)` avoids NullPointerException-style KeyError.
 
-SRE context
+Production context
 -----------
 Health dashboards and runbooks filter unhealthy hosts before paging.
 Control flow is how you turn raw probe results into actionable fleet summaries.

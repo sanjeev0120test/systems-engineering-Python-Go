@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logger = get_logger(__name__)
 
-# --- Why this matters (SRE) ---
+# --- Why this matters (production) ---
 # Health checks and log shipping are I/O-bound (HTTP, disk, network).
 # Log parsing at scale can be CPU-bound — threads won't help; use multiprocessing
 # or push work to Go/Rust sidecars.

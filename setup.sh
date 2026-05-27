@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-echo "=== Step 0: SRE Python Practice Lab Setup ==="
+echo "=== Step 0: Python Practice Lab Setup ==="
 
 if ! command -v python3 >/dev/null 2>&1; then
   echo "ERROR: python3 not found."

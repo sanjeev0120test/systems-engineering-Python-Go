@@ -12,8 +12,8 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGreet(t *testing.T) {
-	got := Greet(User{Name: "alex", Role: "sre"})
-	want := "Hello, alex (sre)"
+	got := Greet(User{Name: "alex", Role: "engineer"})
+	want := "Hello, alex (engineer)"
 	if got != want {
 		t.Fatalf("Greet() = %q, want %q", got, want)
 	}

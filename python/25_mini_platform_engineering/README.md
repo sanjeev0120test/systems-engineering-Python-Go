@@ -17,4 +17,4 @@ Simulated lint → test → deploy pipeline writing a report to `sample_data/out
 
 ## Congratulations
 
-You completed the Python SRE track (Steps 0–31). Continue with Go basics at Step 32.
+You completed the Python Python track (Steps 0–31). Continue with Go basics at Step 32.

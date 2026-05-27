@@ -1,4 +1,4 @@
-"""Structured logging helpers for SRE practice steps.
+"""Structured logging helpers for practice lab steps.
 
 Production teams emit JSON log lines so Loki/ELK/Datadog can index fields like
 trace_id and service without regex parsing.

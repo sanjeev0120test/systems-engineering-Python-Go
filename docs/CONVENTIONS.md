@@ -24,7 +24,7 @@ out = output_path("health_report.json")        # gitignored runtime output
 
 ## Comment blocks in lesson.py
 
-Each section may include: Java note, Python concept, SRE use case, run command, expected output, interview tip, production tradeoff.
+Each section may include: Java note, Python concept, Production use case, run command, expected output, interview tip, production tradeoff.
 
 ## Verification
 

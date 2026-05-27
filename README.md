@@ -1,6 +1,6 @@
 # systems-engineering-Python-Go
 
-Local **SRE / DevOps / Platform Engineering** practice lab — Python-first (90%), Go basics (10%).
+Local **Python and Go systems engineering** practice lab — Python-first (90%), Go basics (10%).
 
 Everything runs **locally** in Cursor with **WSL2** — no cloud required.
 
