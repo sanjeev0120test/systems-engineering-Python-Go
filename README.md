@@ -99,6 +99,8 @@ alert = f"CRITICAL: {hostname} status={code}"  # f-string — see Step 1 lesson
 
 **Use case:** Parse hostnames from URLs and log lines before routing alerts. Wrong hostname = wrong team paged.
 
+**Production examples:** PagerDuty alert enrichment; extracting `host=` from log lines for auto-triage; building Slack messages with severity + hostname + region; normalizing URLs from runbook links before HTTP probes.
+
 **Run:** `./run.sh 1` · **File:** `step_01_variables/lesson.py`
 
 ---
@@ -125,7 +127,7 @@ if hostname:  # falsy if None or ""
 
 **Use case:** Classify HTTP status into WARNING vs CRITICAL for alert routing.
 
----
+**Production examples:** Route 5xx to P1 page, 4xx to ticket only; skip processing when config list is empty; branch deploy script on `if disk_percent > 90`.
 
 #### 2.3 Functions, defaults, and multiple returns (Step 3)
 
@@ -142,6 +144,8 @@ def build_probe_url(host: str, path: str = "/health", port: int = 8080) -> str:
 **Why:** Health-check URLs share a pattern — defaults avoid repeating `8080` and `/health` across 50 services.
 
 **Official ref:** [Defining functions](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)
+
+**Production examples:** One `format_timestamp()` used by reports, alerts, and CSV exports; `build_probe_url()` shared by checker and load test scripts; validation helpers returning `(ok, error_msg)` tuples instead of throwing for batch jobs.
 
 ---
 
@@ -403,6 +407,102 @@ Step 19  alerting_engine      → YAML rules + SQLite deduplication
 
 ---
 
+#### 3.9 Python production use cases — complete reference
+
+Every Python concept in this lab, with **what it solves in production**, **how Java teams do the same thing**, and **where to find it in this repo**. This is the concept index Java developers should bookmark.
+
+| # | Python concept | Step | Repo file(s) | Java equivalent | Production use cases (real-world) |
+|---|----------------|------|--------------|-----------------|-----------------------------------|
+| 1 | **Dynamic typing + f-strings** | 1 | `step_01_variables/solution.py` | `String`, `String.format` | PagerDuty/Opsgenie alert text; extracting host from URLs in runbooks; normalizing log fields before routing to team channels |
+| 2 | **Control flow + truthiness** | 2 | `step_02_control_flow/solution.py` | `if/else`, null checks | Map HTTP 4xx→WARNING and 5xx→CRITICAL; skip empty config entries; gate deploy scripts on disk threshold |
+| 3 | **Functions + default args** | 3 | `step_03_functions/solution.py` | Overloading, builders | Build probe URLs for 200 microservices; format timestamps for reports; reusable validators shared across scripts |
+| 4 | **`@dataclass` + duck typing** | 4 | `step_04_classes/solution.py` | POJO, Lombok `@Data` | Host inventory objects; config DTOs; probe result records passed between checker and reporter |
+| 5 | **`try/except` (EAFP)** | 5 | `step_05_exceptions/solution.py` | `try/catch` | Graceful handling when disk full, API timeout, or bad JSON — script logs error and exits 1 instead of traceback to cron email |
+| 6 | **Type hints + TypedDict** | 6 | `step_06_typing/solution.py` | Generics, records | Contract for metrics JSON from agents; IDE autocomplete in large automation repos; `mypy` in CI like Java compile checks |
+| 7 | **Context managers (`with`)** | 7 | `02_file_handling/solution.py` | try-with-resources | Stream large log files without leaking handles; write reports safely; read secrets from files on shared jump hosts |
+| 8 | **JSON + YAML config** | 8 | `03_json_yaml/solution.py`, `common/config_loader.py` | Jackson, SnakeYAML, `@ConfigurationProperties` | Service manifests; alert rule files; feature flags; **`LAB_*` env override** = same pattern as Spring `application-prod.yml` |
+| 9 | **`logging` + JSON + trace_id** | 9 | `04_logging/lesson.py`, `common/logging_setup.py` | SLF4J, Logback, MDC | Ship logs to ELK/Loki/Datadog; correlate health check → alert → ticket; replace `System.out.println` in ops scripts |
+| 10 | **`subprocess.run` + timeout** | 10 | `05_subprocess_linux/solution.py` | `ProcessBuilder` | Disk cleanup checks (`df`); certificate expiry (`openssl`); package audits; **always timeout** — hung cron jobs block entire host automation |
+| 11 | **HTTP client + retry** | 11 | `06_rest_api/client/solution.py` | RestTemplate, WebClient | Synthetic monitoring; webhook delivery; polling `/health` before deploy; polling external SaaS status APIs |
+| 12 | **FastAPI + uvicorn** | 12 | `06_rest_api/server/solution.py` | Spring Boot Actuator | Internal health APIs; webhook receivers; small admin endpoints; sidecar-style services without full Spring stack |
+| 13 | **GIL awareness** | 13 | `07_concurrency/solution.py` | Thread pool sizing | Choose threading vs asyncio vs multiprocessing before building fleet-wide checker — wrong choice = slow or broken at scale |
+| 14 | **`ThreadPoolExecutor`** | 14 | `08_threading/solution.py` | `ExecutorService` | Parallel health checks across 20–50 hosts; concurrent file uploads; batch API calls where asyncio is overkill |
+| 15 | **`asyncio` + async I/O** | 15 | `09_asyncio/solution.py` | CompletableFuture, reactive | 500+ endpoint probes from one process; async HTTP fan-out; high concurrency with lower memory than 500 threads |
+| 16 | **Synthetic health checks** | 16 | `13_health_checker/solution.py` | Micrometer health, k8s probes | Pre-release smoke tests; dependency maps (DB, cache, payment gateway); TCP port checks; JSON reports for dashboards |
+| 17 | **Monitoring agent** | 17 | `10_monitoring_agent/solution.py` | Datadog agent, Telegraf | Periodic CPU/mem/disk snapshots; capacity planning; saturation alerts before OOM; `LAB_CHECK_INTERVAL_SECONDS` for tuning |
+| 18 | **Log parsing + SLIs** | 18 | `11_log_parser/solution.py` | Logstash, batch analytics | Error rate SLI from nginx logs; p95 latency SLI; SLO dashboards; post-incident "how bad was it?" analysis |
+| 19 | **Alert rules + SQLite dedup** | 19 | `12_alerting_engine/solution.py` | Alertmanager, PagerDuty rules | Fire on SLO burn; dedupe with `INSERT OR IGNORE` so one outage = one page; rules in YAML like Alertmanager config |
+| 20 | **Token bucket rate limit** | 20 | `16_rate_limiter/solution.py` | Bucket4j, API gateway | Protect internal APIs from runaway scripts; fair-share throttling; prevent cascade when one client retries aggressively |
+| 21 | **Retry + circuit breaker** | 21 | `23_retry_circuit_breaker/solution.py` | Resilience4j | Call flaky payment API with backoff; stop calling dead dependency (open circuit); auto-recover (half-open) like Hystrix pattern |
+| 22 | **File queue + DLQ worker** | 22 | `24_queue_worker/solution.py` | SQS, JMS, `@Async` | Nightly report jobs; config sync tasks; reindex jobs; failed jobs → DLQ for manual replay |
+| 23 | **Reverse proxy simulation** | 23 | `14_reverse_proxy_sim/solution.py` | Nginx, Envoy | Forward requests; strip hop-by-hop headers; understand how ingress/gateway works before debugging 502 chains |
+| 24 | **Load balancer simulation** | 24 | `15_load_balancer_sim/solution.py` | HAProxy, k8s Service | Round-robin across backends; see why sticky sessions and health checks matter |
+| 25 | **Scheduler / cron jobs** | 25 | `17_scheduler_cron/solution.py` | Quartz, `@Scheduled`, cron | Run health checks every 5 min; rotate logs; trigger reports; `apscheduler` = Python cron without crontab syntax wars |
+| 26 | **Config drift detection** | 26 | `18_config_management/solution.py` | GitOps diff, Ansible drift | Detect when prod YAML diverges from git; audit who changed alert thresholds; compliance snapshots |
+| 27 | **Scheduler simulation (K8s-style)** | 27 | `19_kubernetes_sim/solution.py` | Kubernetes scheduler | Place pods on nodes by CPU/memory — understand scheduling before debugging Pending pods |
+| 28 | **Incident timeline (SQLite)** | 28 | `20_incident_simulator/solution.py` | PagerDuty timeline, Jira | Postmortem timeline; who did what when; audit trail for severity changes during outage |
+| 29 | **Prometheus `/metrics`** | 29 | `21_metrics_exporter/solution.py` | Micrometer, Prometheus client | Expose counters/gauges for scraping; golden signals; Grafana dashboards; `lab_*` metric prefix in this repo |
+| 30 | **Leader election basics** | 30 | `22_distributed_system_basics/solution.py` | ZooKeeper, etcd leases | Only one agent runs cron job in cluster; avoid duplicate work; foundation for understanding distributed locks |
+| 31 | **Deploy pipeline capstone** | 31 | `25_mini_platform_engineering/solution.py` | Jenkins, GitHub Actions | lint → test → deploy simulation; gate release on checks passing; same shape as real CI/CD pipelines |
+
+##### Step 0 — Virtual environment (foundation, not a numbered lesson file)
+
+| Concept | Java equivalent | Production use case | In this repo |
+|---------|-----------------|---------------------|--------------|
+| **`venv`** | Per-project classpath / isolated Maven deps | Reproducible deps on laptops, CI, and jump boxes — no "works on my machine" | `./setup.sh` creates `.venv`; `requirements.txt` pins deps |
+| **`PYTHONPATH`** | `-cp` classpath | Import `python.common.*` from any step when running via `./run.sh` | Set in `run.sh`, `check.sh`, `run.ps1` |
+| **`if __name__ == "__main__"`** | `public static void main` | Script runs when executed directly, not when imported as module | Every `lesson.py` and `solution.py` |
+
+Official ref: [venv — Creation of virtual environments](https://docs.python.org/3/library/venv.html)
+
+---
+
+##### Production scenario walkthroughs (how concepts chain together)
+
+**Scenario A — Service outage detected and resolved**
+
+1. **Step 16** health checker finds payment-api `/health` returning 503 → writes `health_report.json`
+2. **Step 9** logging emits JSON with `trace_id=abc123` on each probe
+3. **Step 18** log parser computes `error_rate=0.12` from access logs (SLI)
+4. **Step 19** alerting engine reads `rules.yaml`, fires alert, SQLite dedupes duplicate pages
+5. **Step 28** incident simulator records timeline events for postmortem
+
+**Scenario B — Noisy client overwhelming internal API**
+
+1. **Step 20** rate limiter returns HTTP 429 after token bucket exhausted
+2. **Step 21** circuit breaker opens on downstream DB failures after retry budget spent
+3. **Step 9** structured logs show which client IP hit limit (searchable field)
+
+**Scenario C — Fleet-wide health check before deploy**
+
+1. **Step 3** `build_probe_url()` generates URLs for 80 services
+2. **Step 14** `ThreadPoolExecutor` probes all hosts in parallel (I/O-bound)
+3. **Step 31** capstone pipeline blocks deploy if lint/test/health gate fails
+
+**Scenario D — Nightly batch job**
+
+1. **Step 22** enqueue report job to `pending/`
+2. Worker moves to `processing/`, runs handler
+3. On failure after max attempts → `dlq/` for manual replay (same pattern as AWS SQS DLQ)
+
+---
+
+##### Python concepts Steps 23–31 — additional production detail
+
+| Step | Production teams use this when… | Example | Repo function |
+|------|--------------------------------|---------|---------------|
+| 23 | Debugging 502/504 through a gateway | Ingress forwards to app but strips `Connection` header wrong | `proxy_health_summary()` in `14_reverse_proxy_sim/solution.py` |
+| 24 | One backend is slow, others healthy | Round-robin must skip unhealthy backends (this lab teaches basic RR first) | `RoundRobinBalancer` in `15_load_balancer_sim/solution.py` |
+| 25 | Cron on one server is not enough | Schedule metrics collection, cert checks, cache warming | `CronJobRunner` in `17_scheduler_cron/solution.py` |
+| 26 | Someone edited prod config by hand | Compare live YAML to git snapshot; alert on drift | config drift functions in `18_config_management/solution.py` |
+| 27 | Pod stuck Pending | Scheduler picks node with enough CPU/memory | `PodScheduler` in `19_kubernetes_sim/solution.py` |
+| 28 | Postmortem needs exact timeline | Record "detected", "mitigated", "resolved" with actor | `IncidentStore` in `20_incident_simulator/solution.py` |
+| 29 | Grafana needs scrape target | Expose `/metrics` in Prometheus text format | `metrics_payload()` in `21_metrics_exporter/solution.py` |
+| 30 | Two cron agents run same job | Leader election — only leader executes | `LeaderElectionCluster` in `22_distributed_system_basics/solution.py` |
+| 31 | Release needs automated gates | lint → test → deploy with pass/fail report | `run_pipeline()` in `25_mini_platform_engineering/solution.py` |
+
+---
+
 ### 4. Go core concepts (Steps 32–36)
 
 Go is included because infrastructure tooling (Kubernetes, Docker, Terraform providers, Prometheus) is largely Go. You need reading proficiency, not mastery.
@@ -503,6 +603,7 @@ http.ListenAndServe(":8081", mux)
 ## Table of contents
 
 1. [Programming concepts deep dive (Java → Python → Go)](#programming-concepts-deep-dive-java--python--go) ← **start here for concept learning**
+2. [Python production use cases — complete reference (§3.9)](#39-python-production-use-cases--complete-reference)
 2. [Quick start](#quick-start)
 3. [How every step works](#how-every-step-works)
 4. [Repository layout](#repository-layout)
