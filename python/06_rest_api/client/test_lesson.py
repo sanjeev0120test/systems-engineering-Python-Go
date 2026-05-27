@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from typing import Any
@@ -54,7 +53,7 @@ def flaky_server() -> str:
 
 
 def test_build_session_returns_session() -> None:
-    session = build_session(retries=2)
+    session = build_session()
     assert session is not None
 
 

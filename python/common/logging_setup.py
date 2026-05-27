@@ -46,15 +46,7 @@ def get_logger(
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.propagate = False
-
-    if logger.handlers:
-        for handler in logger.handlers:
-            handler.setLevel(level)
-            if json_logs and isinstance(handler.formatter, JsonFormatter):
-                return logger
-            if not json_logs and not isinstance(handler.formatter, JsonFormatter):
-                return logger
-        logger.handlers.clear()
+    logger.handlers.clear()
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)

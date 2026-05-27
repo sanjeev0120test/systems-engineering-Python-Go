@@ -69,15 +69,6 @@ def check_http(
                     "attempts": attempt,
                     "error": last_error,
                 }
-    return {
-        "type": "http",
-        "url": url,
-        "ok": False,
-        "status_code": None,
-        "latency_ms": 0.0,
-        "attempts": retries,
-        "error": last_error or "unknown error",
-    }
 
 
 def check_tcp(
@@ -118,15 +109,6 @@ def check_tcp(
                     "attempts": attempt,
                     "error": last_error,
                 }
-    return {
-        "type": "tcp",
-        "host": host,
-        "port": port,
-        "ok": False,
-        "latency_ms": 0.0,
-        "attempts": retries,
-        "error": last_error or "unknown error",
-    }
 
 
 def run_with_retry(

@@ -6,24 +6,11 @@ import time
 from typing import Any
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 
-def build_session(retries: int = 3, backoff: float = 0.5) -> requests.Session:
-    """Session with urllib3 retry on connection errors and 5xx responses."""
-    session = requests.Session()
-    retry = Retry(
-        total=retries,
-        backoff_factor=backoff,
-        status_forcelist=[500, 502, 503, 504],
-        allowed_methods=["GET"],
-        raise_on_status=False,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
-    return session
+def build_session() -> requests.Session:
+    """Return a reusable HTTP session (same connection pool for multiple calls)."""
+    return requests.Session()
 
 
 def poll_health(
@@ -38,7 +25,7 @@ def poll_health(
 
     Returns dict with ok, status_code, latency_ms, attempts, body/error.
     """
-    session = build_session(retries=retries, backoff=backoff)
+    session = build_session()
     last_error: str | None = None
     attempts = 0
 

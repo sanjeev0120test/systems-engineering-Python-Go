@@ -43,16 +43,12 @@ def load_rules(path: Path | None = None) -> list[dict[str, Any]]:
 
 
 def _log_parser_summary() -> dict[str, Any]:
-    """Import Step 18 log parser lazily with a unique module name."""
-    import importlib.util
+    """Import Step 18 log parser without name collisions."""
+    from python.step_loader import load_solution
 
-    parser_path = Path(__file__).resolve().parent.parent / "11_log_parser" / "solution.py"
-    spec = importlib.util.spec_from_file_location("log_parser_step18_solution", parser_path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Cannot load log parser from {parser_path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.analyze_access_log()
+    parser_dir = Path(__file__).resolve().parent.parent / "11_log_parser"
+    parser = load_solution(parser_dir)
+    return parser.analyze_access_log()
 
 
 def load_metrics_snapshot(

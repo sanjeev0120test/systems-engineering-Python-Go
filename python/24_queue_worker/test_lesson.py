@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
-from python.common import paths as paths_module
-from python.common.paths import output_path, sample_data_path
 
+from python.common.paths import output_path
 from python.step_loader import load_solution
 
 STEP_DIR = Path(__file__).resolve().parent
