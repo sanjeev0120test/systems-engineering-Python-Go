@@ -29,30 +29,498 @@ Windows: `.\setup.ps1` → `.\check.ps1 0` → `.\run.ps1 1` → `.\check.ps1 1`
 | Platform sims | 23–31 | proxy, LB, scheduler, metrics, capstone pipeline |
 | Go basics | 32–36 | syntax, goroutines, HTTP, workers, log parser |
 
-You already know Java. Each `lesson.py` has Java comparisons in comments — this README is your map.
+You already know Java. Each `lesson.py` has Java comparisons in comments — this README is your full concept guide.
+
+---
+
+## Programming concepts deep dive (Java → Python → Go)
+
+This section explains **what each concept is**, **how Java does it**, **how Python/Go do it in this repo**, **why teams choose it**, and **which production problem it solves**. References point to official documentation.
+
+### Official documentation (authoritative sources)
+
+| Language / library | Official docs | Used in this lab |
+|--------------------|---------------|------------------|
+| Python tutorial | [docs.python.org/3/tutorial/](https://docs.python.org/3/tutorial/) | Steps 1–6 |
+| Python typing | [docs.python.org/3/library/typing.html](https://docs.python.org/3/library/typing.html) | Step 6 |
+| Context managers (`with`) | [docs.python.org/3/reference/compound_stmts.html#the-with-statement](https://docs.python.org/3/reference/compound_stmts.html#the-with-statement) | Step 7 |
+| `json` module | [docs.python.org/3/library/json.html](https://docs.python.org/3/library/json.html) | Step 8 |
+| `logging` module | [docs.python.org/3/library/logging.html](https://docs.python.org/3/library/logging.html) | Step 9 |
+| `subprocess` | [docs.python.org/3/library/subprocess.html](https://docs.python.org/3/library/subprocess.html) | Step 10 |
+| GIL (Global Interpreter Lock) | [docs.python.org/3/glossary.html#term-global-interpreter-lock](https://docs.python.org/3/glossary.html#term-global-interpreter-lock) | Steps 13–15 |
+| `threading` | [docs.python.org/3/library/threading.html](https://docs.python.org/3/library/threading.html) | Step 14 |
+| `asyncio` | [docs.python.org/3/library/asyncio.html](https://docs.python.org/3/library/asyncio.html) | Step 15 |
+| `venv` | [docs.python.org/3/library/venv.html](https://docs.python.org/3/library/venv.html) | Step 0 |
+| FastAPI | [fastapi.tiangolo.com](https://fastapi.tiangolo.com/) | Step 12 |
+| Go tour & docs | [go.dev/doc/](https://go.dev/doc/) | Steps 32–36 |
+| Effective Go | [go.dev/doc/effective_go](https://go.dev/doc/effective_go) | Steps 32–36 |
+| Go concurrency rationale | [go.dev/doc/faq#Why_goroutines](https://go.dev/doc/faq#Why_goroutines) | Step 33 |
+| `net/http` | [pkg.go.dev/net/http](https://pkg.go.dev/net/http) | Step 34 |
+
+---
+
+### 1. How Java, Python, and Go think differently
+
+| Dimension | Java | Python (this lab) | Go (Steps 32–36) |
+|-----------|------|-------------------|------------------|
+| **Typing** | Static, enforced at compile time | Dynamic at runtime; [type hints](https://docs.python.org/3/library/typing.html) for humans/tools | Static, enforced at compile time |
+| **Null safety** | `null`, `Optional<T>` | `None`, `T \| None` in hints | `nil`, pointer checks |
+| **Errors** | Exceptions (`try/catch`) | Exceptions (`try/except`) — no checked exceptions | Values: `(result, error)` — [Effective Go: Errors](https://go.dev/doc/effective_go#errors) |
+| **OOP** | Classes, interfaces, inheritance | Classes optional; [dataclasses](https://docs.python.org/3/library/dataclasses.html); duck typing | Structs + methods; no inheritance required |
+| **Concurrency** | OS threads, `ExecutorService` | Threads (I/O), `asyncio` (I/O), GIL limits CPU in threads | Goroutines — lightweight, multiplexed on OS threads |
+| **Packaging** | JAR + Maven/Gradle | `venv` + `pip` + [requirements.txt](requirements.txt) | `go.mod` + `go build` single binary |
+| **Web APIs** | Spring Boot | FastAPI + uvicorn | `net/http` |
+
+**Architect view:** Java optimizes for large enterprise codebases with compile-time safety. Python optimizes for **speed of automation** — readable scripts that become production tools. Go optimizes for **simple deployable binaries** and **native concurrency** in infrastructure (Kubernetes, Docker, Prometheus are written in Go).
+
+**Why this lab order:** Python first because most platform glue (health scripts, log parsers, alert automation) is written in Python. Go last because you need it when Python's GIL or deployment model becomes the bottleneck.
+
+---
+
+### 2. Python core concepts (Steps 1–6)
+
+#### 2.1 Variables, dynamic typing, and f-strings (Step 1)
+
+**Concept:** In Python, a name binds to an object at runtime. Types are not fixed at declaration — unlike Java's `String hostname = ...`.
+
+**Java:**
+```java
+String hostname = URI.create(url).getHost();
+String alert = String.format("CRITICAL: %s status=%d", hostname, code);
+```
+
+**Python (this repo — `python/01_python_basics/step_01_variables/solution.py`):**
+```python
+hostname: str = urlparse(url).hostname  # hint only — not enforced at runtime
+alert = f"CRITICAL: {hostname} status={code}"  # f-string — see Step 1 lesson
+```
+
+**Why f-strings:** [Python 3 f-strings](https://docs.python.org/3/reference/lexical_analysis.html#f-strings) are the standard for readable string formatting — faster and clearer than `%` or `.format()` for on-call alert messages.
+
+**Use case:** Parse hostnames from URLs and log lines before routing alerts. Wrong hostname = wrong team paged.
+
+**Run:** `./run.sh 1` · **File:** `step_01_variables/lesson.py`
+
+---
+
+#### 2.2 Control flow and truthiness (Step 2)
+
+**Concept:** Python uses **indentation** for blocks (no `{ }`). Empty containers, zero, `None`, and empty strings are **falsy** — unlike Java where only `null` and `false` are falsy in boolean context.
+
+**Java:**
+```java
+if (statusCode >= 500) { severity = "CRITICAL"; }
+if (hostname != null && !hostname.isEmpty()) { ... }
+```
+
+**Python (Step 2 — `step_02_control_flow/solution.py`):**
+```python
+if status_code >= 500:
+    severity = "CRITICAL"
+if hostname:  # falsy if None or ""
+    ...
+```
+
+**Why it matters:** Platform scripts branch on HTTP status codes, disk thresholds, and config flags constantly. Python's truthiness reduces boilerplate but surprises Java devs — always know what is falsy ([Python docs: Boolean operations](https://docs.python.org/3/library/stdtypes.html#truth-value-testing)).
+
+**Use case:** Classify HTTP status into WARNING vs CRITICAL for alert routing.
+
+---
+
+#### 2.3 Functions, defaults, and multiple returns (Step 3)
+
+**Concept:** Python functions are first-class objects. Default arguments and `*args` replace many Java overload patterns. Functions often return tuples instead of wrapper objects.
+
+**Java:** Method overloading or builder pattern for optional parameters.
+
+**Python (Step 3 — `step_03_functions/solution.py`):**
+```python
+def build_probe_url(host: str, path: str = "/health", port: int = 8080) -> str:
+    return f"http://{host}:{port}{path}"
+```
+
+**Why:** Health-check URLs share a pattern — defaults avoid repeating `8080` and `/health` across 50 services.
+
+**Official ref:** [Defining functions](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)
+
+---
+
+#### 2.4 Classes, dataclasses, and duck typing (Step 4)
+
+**Concept:** Python classes exist but many production scripts use [`@dataclass`](https://docs.python.org/3/library/dataclasses.html) for plain data containers — equivalent to Java POJOs or Lombok `@Data`.
+
+**Java:**
+```java
+@Data
+public class Server {
+    private String hostname;
+    private String role;
+    private boolean healthy;
+}
+```
+
+**Python (Step 4 — `step_04_classes/solution.py`):**
+```python
+@dataclass
+class Server:
+    hostname: str
+    role: str
+    healthy: bool = True
+```
+
+**Duck typing:** Python does not require `implements HealthCheckable`. If an object has the methods you call, it works — like Java interfaces but without formal declaration. For large teams, use type hints + `Protocol` ([typing.Protocol](https://docs.python.org/3/library/typing.html#typing.Protocol)).
+
+**Use case:** Model inventory of hosts/roles before running health checks across a fleet.
+
+---
+
+#### 2.5 Exceptions — EAFP vs LBYL (Step 5)
+
+**Concept:** Python culture prefers **EAFP** (Easier to Ask Forgiveness than Permission) — `try/except` — over **LBYL** (Look Before You Leap) — checking preconditions first. There are **no checked exceptions** like Java.
+
+**Java:**
+```java
+try {
+    return a / b;
+} catch (ArithmeticException e) {
+    return Optional.empty();
+}
+```
+
+**Python (Step 5 — `step_05_exceptions/solution.py`):**
+```python
+try:
+    return a / b
+except ZeroDivisionError:
+    return None
+```
+
+**Why in production:** Subprocess calls, HTTP requests, and file reads fail often. Handle failures at the boundary, log with context, return structured errors — do not crash the whole automation job.
+
+**Official ref:** [Errors and exceptions](https://docs.python.org/3/tutorial/errors.html)
+
+---
+
+#### 2.6 Type hints and TypedDict (Step 6)
+
+**Concept:** [PEP 484 type hints](https://docs.python.org/3/library/typing.html) document intent without changing runtime behavior — unlike Java where types are enforced by the compiler.
+
+**Python (Step 6 — `step_06_typing/solution.py`):**
+```python
+class HostMetric(TypedDict):
+    host: str
+    cpu_percent: float
+    memory_percent: float
+```
+
+**Why:** Metrics JSON from agents needs predictable keys. Hints help IDEs and `mypy` catch typos — same reason you use types in Java, but optional at runtime.
+
+**Use case:** Parse host metrics before deciding overload alerts (Step 17 builds on this).
+
+---
+
+### 3. Python for production systems (Steps 7–22)
+
+#### 3.1 Context managers and file I/O (Step 7)
+
+**Concept:** The [`with` statement](https://docs.python.org/3/reference/compound_stmts.html#the-with-statement) guarantees files close even when exceptions occur — direct equivalent of Java try-with-resources.
+
+**Java:**
+```java
+try (BufferedReader reader = Files.newBufferedReader(path)) {
+    return reader.lines().toList();
+}
+```
+
+**Python (Step 7 — `02_file_handling/solution.py`):**
+```python
+with path.open("r", encoding="utf-8") as handle:
+    return handle.read().splitlines()
+```
+
+**Use case:** Read access logs line-by-line for parsing (Step 18). Always specify `encoding="utf-8"` — production logs are UTF-8.
+
+**Why not bash `cat`:** Python adds filtering, error handling, and JSON output in one script.
+
+---
+
+#### 3.2 JSON, YAML, and configuration (Step 8)
+
+**Concept:** Config files are the contract between services and operators. Python reads JSON ([json](https://docs.python.org/3/library/json.html)) and YAML (`yaml.safe_load` — never `yaml.load` without Loader).
+
+**Java:** Jackson `ObjectMapper`, SnakeYAML with typed binding.
+
+**Python (Step 8 + `python/common/config_loader.py`):**
+```python
+config = load_service_config(sample_data_path("configs", "service.yaml"))
+# LAB_ENVIRONMENT=prod overrides YAML when set — 12-factor app pattern
+```
+
+**Why env override:** Same code runs in dev/staging/prod; only env vars change — no code change per environment.
+
+**Use case:** Load service endpoints for health checks (Step 16), alert rules (Step 19), agent intervals (Step 17).
+
+---
+
+#### 3.3 Structured logging (Step 9)
+
+**Concept:** The [`logging`](https://docs.python.org/3/library/logging.html) module is Python's standard — like SLF4J. Production systems emit **JSON log lines** so Elasticsearch/Loki/Datadog index fields without regex.
+
+**Java:** SLF4J + Logback JSON encoder + MDC for trace IDs.
+
+**Python (Step 9 + `python/common/logging_setup.py`):**
+```python
+logger = get_logger("health_checker", json_logs=True)
+trace_id = new_trace_id()  # 16-char correlation ID
+logger.info("probe completed", extra={"trace_id": trace_id, "service": "payment-api"})
+```
+
+**Why `trace_id`:** Links health check → log parse → alert → ticket during an incident. Without it, you cannot follow one request across microservices.
+
+**Use case:** Every tool from Step 9 onward should log structured JSON, not `print()`.
+
+---
+
+#### 3.4 Subprocess automation (Step 10)
+
+**Concept:** [`subprocess.run`](https://docs.python.org/3/library/subprocess.html) replaces shell scripts when you need branching, JSON output, or error handling. **Always set `timeout`** — hung processes are a top cause of stuck automation.
+
+**Java:** `ProcessBuilder` with `waitFor(timeout, unit)`.
+
+**Python (Step 10 — `05_subprocess_linux/solution.py`):**
+```python
+result = subprocess.run(
+    command,
+    capture_output=True,
+    text=True,
+    timeout=30,
+    check=False,
+)
+# inspect result.returncode, result.stdout, result.stderr
+```
+
+**Use case:** Wrap `df`, `free`, `uptime` for host snapshots. Requires **Linux/WSL** — use WSL terminal for Step 10.
+
+**Why not raw `os.system`:** No timeout, no structured capture, shell injection risk.
+
+---
+
+#### 3.5 HTTP client and server (Steps 11–12)
+
+**HTTP client (Step 11):** [`requests`](https://requests.readthedocs.io/) is the standard sync HTTP library — like Java's RestTemplate/WebClient simplified.
+
+**Python (`06_rest_api/client/solution.py`):**
+```python
+for attempt in range(1, retries + 1):
+    response = session.get(url, timeout=timeout)
+    if response.ok:
+        return {"ok": True, "body": response.json(), ...}
+    time.sleep(backoff * attempt)
+```
+
+**Why retry with backoff:** Transient network blips should not page on-call. Exponential backoff prevents hammering a recovering service.
+
+**HTTP server (Step 12):** [FastAPI](https://fastapi.tiangolo.com/) — minimal ASGI framework. Like Spring `@RestController` with less boilerplate.
+
+**Python (`06_rest_api/server/solution.py`):**
+```python
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok", "service": "practice-lab"}
+```
+
+**Use case:** Internal health endpoints polled by Step 11 client and Step 16 health checker. Step 12 server blocks the terminal — use Ctrl+C or a second terminal.
+
+---
+
+#### 3.6 Concurrency — GIL, threading, asyncio (Steps 13–15)
+
+**The GIL:** CPython's [Global Interpreter Lock](https://docs.python.org/3/glossary.html#term-global-interpreter-lock) allows only one thread to execute Python bytecode at a time. **Java threads can run CPU work in parallel; Python threads cannot for CPU-bound tasks.**
+
+| Workload type | Java | Python choice in this lab | Why |
+|---------------|------|---------------------------|-----|
+| CPU-bound (parse 10GB logs) | `parallelStream()` | `multiprocessing` or Go Step 36 | Bypass GIL |
+| I/O-bound (HTTP probes) | `ExecutorService` | `ThreadPoolExecutor` (Step 14) | Threads wait on network, GIL released during I/O |
+| Many concurrent I/O | WebClient reactive | `asyncio` (Step 15) | Single thread, many coroutines — lower memory |
+
+**Step 14 (`08_threading/solution.py`):** `ThreadPoolExecutor` probes multiple hosts in parallel — simple, readable.
+
+**Step 15 (`09_asyncio/solution.py`):** `asyncio.gather()` for many concurrent HTTP checks — scales better than threads at high fan-out.
+
+**Architect rule for Java devs:** Do not assume "more threads = faster" in Python. Match concurrency model to I/O vs CPU.
+
+---
+
+#### 3.7 Observability pipeline (Steps 16–19)
+
+This is the **production core** — four steps that mirror real on-call workflows:
+
+```text
+Step 16  health_checker     → synthetic probes (HTTP/TCP), JSON report
+Step 17  monitoring_agent   → collect CPU/mem/disk metrics periodically
+Step 18  log_parser          → SLIs: error_rate, latency_p95_ms from logs
+Step 19  alerting_engine      → YAML rules + SQLite deduplication
+```
+
+**Step 16 — Health checks (`13_health_checker/solution.py`):**
+- **Java analogy:** Spring Boot Actuator `/actuator/health`, Micrometer health indicators.
+- **Python:** `requests.get` with retries, TCP socket probes, writes `sample_data/output/health_report.json`.
+- **Why:** Know if dependencies are reachable before users complain.
+
+**Step 17 — Monitoring agent (`10_monitoring_agent/solution.py`):**
+- **Java analogy:** JMX polling, Datadog agent pattern.
+- **Python:** `psutil` reads host metrics, writes JSON snapshots.
+- **Why:** Golden signal **saturation** — CPU/memory/disk trends predict outages.
+
+**Step 18 — Log parser (`11_log_parser/solution.py`):**
+- **Java analogy:** Batch log analysis job, ELK ingest pipeline.
+- **Python:** Parse nginx-style access logs, compute error rate and p95 latency.
+- **Why:** Log-based SLIs measure **user-visible** failures (5xx rate), not just server ping.
+
+**Step 19 — Alerting (`12_alerting_engine/solution.py`):**
+- **Java analogy:** Alertmanager routing rules.
+- **Python:** Load rules from `sample_data/alerts/rules.yaml`, evaluate against metrics, `INSERT OR IGNORE` in SQLite to dedupe.
+- **Why:** Without deduplication, one incident generates hundreds of duplicate pages.
+
+---
+
+#### 3.8 Reliability patterns (Steps 20–22)
+
+**Step 20 — Rate limiter (`16_rate_limiter/solution.py`):**
+- **Concept:** Token bucket limits requests per second — protects APIs from overload.
+- **Java:** Bucket4j, Spring Cloud Gateway filters.
+- **Why:** One noisy client should not take down a shared service.
+
+**Step 21 — Retry + circuit breaker (`23_retry_circuit_breaker/solution.py`):**
+- **Concept:** Retry transient failures with backoff; open circuit after repeated failures to stop cascading outages.
+- **Java:** Resilience4j `@Retry`, `@CircuitBreaker`.
+- **Why:** Calling a failing dependency repeatedly makes recovery harder.
+
+**Step 22 — Queue worker (`24_queue_worker/solution.py`):**
+- **Concept:** Durable job queue with `pending/` → `processing/` → `completed/` and dead-letter queue (DLQ).
+- **Java:** JMS consumer, SQS worker, `@Async` with persistence.
+- **Why:** Background tasks (reindex, cleanup, report generation) must survive restarts and handle failures.
+
+---
+
+### 4. Go core concepts (Steps 32–36)
+
+Go is included because infrastructure tooling (Kubernetes, Docker, Terraform providers, Prometheus) is largely Go. You need reading proficiency, not mastery.
+
+#### 4.1 Structs, methods, and explicit errors (Step 32)
+
+**File:** `go/01_go_basics/main.go`
+
+**Java:** Class with fields + methods; exceptions for errors.
+
+**Go:**
+```go
+type User struct {
+    Name string
+    Role string
+}
+
+func Divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, fmt.Errorf("divide by zero")
+    }
+    return a / b, nil
+}
+```
+
+**Why `(value, error)`:** Go has no exceptions. Callers must handle errors explicitly — forces visibility of failure paths. See [Effective Go: Errors](https://go.dev/doc/effective_go#errors).
+
+**Use case:** CLI tools that must exit with non-zero code on failure.
+
+---
+
+#### 4.2 Goroutines and sync primitives (Step 33)
+
+**File:** `go/02_concurrency/main.go`
+
+**Java:** `new Thread()`, `ExecutorService`, `synchronized`.
+
+**Go:** Goroutines are lightweight — start thousands cheaply. [Why goroutines?](https://go.dev/doc/faq#Why_goroutines)
+
+```go
+// SumConcurrent — goroutines + sync.Mutex (like synchronized block)
+// SquareAll — goroutines + channels for ordered results
+```
+
+**Why Go for concurrency:** No GIL. CPU + I/O parallelism in one process. Python Steps 14–15 teach I/O concurrency; Go Step 33 shows native parallel execution.
+
+---
+
+#### 4.3 HTTP server with net/http (Step 34)
+
+**File:** `go/03_http_server/main.go` · **Docs:** [net/http](https://pkg.go.dev/net/http)
+
+**Java:** Embedded Tomcat / Spring Boot.
+
+**Go:**
+```go
+mux.HandleFunc("/health", HealthHandler)
+http.ListenAndServe(":8081", mux)
+```
+
+**Why:** Single static binary, no JVM, minimal memory — ideal for sidecar health servers and small internal APIs. Same `/health` contract as Python Step 12.
+
+---
+
+#### 4.4 Worker pool and log processing (Steps 35–36)
+
+**Step 35 (`go/04_worker_pool/main.go`):** Buffered channels + fixed worker count — like Java `ThreadPoolExecutor` with a bounded queue.
+
+**Step 36 (`go/05_log_processor/main.go`):** Concurrent log parsing with worker pool — same problem as Python Step 18 but Go handles CPU parallelism natively.
+
+**Python vs Go for log parsing:**
+- **Python Step 18:** Simple, readable, fine for MB-scale logs; GIL limits CPU parallelism.
+- **Go Step 36:** Better when parsing GB-scale logs with many cores.
+
+---
+
+### 5. Architecture decision guide
+
+| Problem | Recommended in this lab | Step |
+|---------|-------------------------|------|
+| Parse hostnames from alerts | Python f-strings + urlparse | 1 |
+| Read config files | Python YAML + env override | 8 |
+| Automate Linux commands | Python subprocess + timeout | 10 |
+| Poll health endpoints | Python requests + retry | 11, 16 |
+| Expose internal API | Python FastAPI | 12 |
+| Parallel I/O (few hosts) | Python ThreadPoolExecutor | 14 |
+| Parallel I/O (many hosts) | Python asyncio | 15 |
+| Metrics + logs + alerts | Python observability chain | 16–19 |
+| Protect API from overload | Python token bucket | 20 |
+| Background jobs with DLQ | Python file queue | 22 |
+| Single-binary CLI agent | Go | 32–36 |
+| CPU-heavy concurrent parse | Go worker pool | 36 |
+
+**Golden rule:** Start with Python for automation and glue. Reach for Go when you need a **single binary**, **CPU parallelism**, or **millions of goroutines**.
 
 ---
 
 ## Table of contents
 
-1. [Quick start](#quick-start)
-2. [How every step works](#how-every-step-works)
-3. [Repository layout](#repository-layout)
-4. [Shared code (`python/common/`)](#shared-code-pythoncommon)
-5. [Prerequisites and setup (Step 0)](#prerequisites-and-setup-step-0)
-6. [Commands reference](#commands-reference)
-7. [Full step index (0–36)](#full-step-index-036)
-8. [Step-by-step concepts (Java → Python → files)](#step-by-step-concepts-java--python--files)
-9. [What each block teaches](#what-each-block-teaches)
-10. [Java to Python cheat sheet](#java-to-python-cheat-sheet)
-11. [Concurrency: threads vs asyncio vs Go](#concurrency-threads-vs-asyncio-vs-go)
-12. [SLI, SLO, and error budgets](#sli-slo-and-error-budgets)
-13. [Go steps (Java → Go → files)](#go-steps-java--go--files)
-14. [Java → Python → Go comparison](#java--python--go-comparison)
-15. [Real-world use cases](#real-world-use-cases)
-16. [Repository conventions](#repository-conventions)
-17. [Troubleshooting](#troubleshooting)
-18. [Keep practicing](#keep-practicing)
+1. [Programming concepts deep dive (Java → Python → Go)](#programming-concepts-deep-dive-java--python--go) ← **start here for concept learning**
+2. [Quick start](#quick-start)
+3. [How every step works](#how-every-step-works)
+4. [Repository layout](#repository-layout)
+5. [Shared code (`python/common/`)](#shared-code-pythoncommon)
+6. [Prerequisites and setup (Step 0)](#prerequisites-and-setup-step-0)
+7. [Commands reference](#commands-reference)
+8. [Full step index (0–36)](#full-step-index-036)
+9. [Step-by-step concepts (Java → Python → files)](#step-by-step-concepts-java--python--files)
+10. [What each block teaches](#what-each-block-teaches)
+11. [Java to Python cheat sheet](#java-to-python-cheat-sheet)
+12. [Concurrency: threads vs asyncio vs Go](#concurrency-threads-vs-asyncio-vs-go)
+13. [SLI, SLO, and error budgets](#sli-slo-and-error-budgets)
+14. [Go steps (Java → Go → files)](#go-steps-java--go--files)
+15. [Java → Python → Go comparison](#java--python--go-comparison)
+16. [Real-world use cases](#real-world-use-cases)
+17. [Repository conventions](#repository-conventions)
+18. [Troubleshooting](#troubleshooting)
+19. [Keep practicing](#keep-practicing)
 
 ---
 
