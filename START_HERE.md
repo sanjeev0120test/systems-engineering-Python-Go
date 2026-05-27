@@ -1,16 +1,19 @@
-# Start Here — systems engineering Python Practice Lab
+# Start Here — Systems Engineering Python Practice Lab
 
 **You know Java. You are learning Python for systems engineering. Go comes last (Steps 32–36).**
 
-Open this repo in Cursor → set terminal to **WSL (Ubuntu)** → follow steps in order.
+Open this repo in Cursor → terminal **WSL (Ubuntu)** → follow steps in order.
+
+> **Step number ≠ folder name.** Step 16 is in `python/13_health_checker/`. See [docs/STEP_INDEX.md](docs/STEP_INDEX.md).  
+> **When finished:** read [GUIDE.md](GUIDE.md) for concepts, Java comparison, and use cases.
 
 ---
 
 ## Before Step 0
 
 - [ ] Cursor opened on this folder
-- [ ] Terminal profile: **WSL Ubuntu** (not PowerShell for Python steps)
-- [ ] Path example: `cd /mnt/c/dev/systems-engineering-Python-Go`
+- [ ] Terminal profile: **WSL Ubuntu**
+- [ ] Example path: `cd /mnt/c/dev/systems-engineering-Python-Go`
 
 ---
 
@@ -28,11 +31,11 @@ chmod +x setup.sh run.sh check.sh
 
 ## How every step works
 
-1. Read the step README under `python/...`
-2. Run the lesson: `./run.sh N`
-3. Practice: edit `exercise.py`, run `./run.sh N exercise`
+1. Read the step **README** (path in [STEP_INDEX](docs/STEP_INDEX.md))
+2. Run: `./run.sh N`
+3. Practice: edit `exercise.py` → `./run.sh N exercise`
 4. Compare: `solution.py`
-5. Verify: `./check.sh N` → must say **PASS** before next step
+5. Verify: `./check.sh N` → **PASS** before next step
 
 ---
 
@@ -71,7 +74,7 @@ chmod +x setup.sh run.sh check.sh
 | 28 | Incident simulator | `./run.sh 28` | `./check.sh 28` |
 | 29 | Prometheus metrics exporter | `./run.sh 29` | `./check.sh 29` |
 | 30 | Distributed systems basics | `./run.sh 30` | `./check.sh 30` |
-| 31 | Platform engineering capstone | `./run.sh 31` | `./check.sh 31` |
+| 31 | Platform capstone | `./run.sh 31` | `./check.sh 31` |
 | 32 | Go basics | `./run.sh 32` | `./check.sh 32` |
 | 33 | Go concurrency | `./run.sh 33` | `./check.sh 33` |
 | 34 | Go HTTP server | `./run.sh 34` | `./check.sh 34` |
@@ -82,9 +85,15 @@ chmod +x setup.sh run.sh check.sh
 
 ---
 
-## Java → Python quick map
+## Docs
 
-See [docs/JAVA_TO_PYTHON.md](docs/JAVA_TO_PYTHON.md)
+| Doc | When to read |
+|-----|--------------|
+| [docs/JAVA_TO_PYTHON.md](docs/JAVA_TO_PYTHON.md) | Anytime — Java bridge |
+| [docs/STEP_INDEX.md](docs/STEP_INDEX.md) | When folder path is unclear |
+| [docs/CONCURRENCY_DECISION_TREE.md](docs/CONCURRENCY_DECISION_TREE.md) | Steps 13–15 |
+| [docs/SLO_SLI_GLOSSARY.md](docs/SLO_SLI_GLOSSARY.md) | Steps 18–19 |
+| [GUIDE.md](GUIDE.md) | **After Step 31** — final summary |
 
 ---
 
@@ -93,6 +102,7 @@ See [docs/JAVA_TO_PYTHON.md](docs/JAVA_TO_PYTHON.md)
 | Problem | Fix |
 |---------|-----|
 | `python3: not found` | `sudo apt install python3 python3-venv python3-pip` |
-| `No module named pytest` | Run `./setup.sh` again |
+| `No module named pytest` | `./setup.sh` again |
 | Step 10 fails on Windows | Use WSL terminal |
-| Step 12 server | `./run.sh 12` blocks — open second terminal for `./run.sh 11` |
+| Step 12 blocks terminal | Normal — server runs until Ctrl+C; use 2nd terminal for `./run.sh 11` |
+| Step 12 shortcut | `./run.sh 12 server` runs `server.py` directly |

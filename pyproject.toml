@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 readme = "README.md"
 
 [tool.pytest.ini_options]
-testpaths = ["python", "go"]
+testpaths = ["python"]
 pythonpath = ["."]
 addopts = "-q --import-mode=importlib"
 

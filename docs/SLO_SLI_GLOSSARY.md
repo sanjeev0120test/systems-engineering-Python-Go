@@ -4,7 +4,7 @@
 |------|---------|--------------|
 | **SLI** | Service Level Indicator — a measurable signal | `error_rate`, `latency_p95_ms` from Step 18 |
 | **SLO** | Service Level Objective — target for an SLI | Alert thresholds in `sample_data/alerts/rules.yaml` |
-| **SLA** | Contract with customers (often 99.9% uptime) | Discussed in README interview sections |
+| **SLA** | Contract with customers (often 99.9% uptime) | See [GUIDE.md](../GUIDE.md) use cases |
 | **Error budget** | Allowed unreliability before feature freeze | If error_rate > 0.05, budget burning (Step 19) |
 | **Golden signals** | Latency, traffic, errors, saturation | Steps 17–19 simulate these |
 

@@ -5,7 +5,8 @@ Minimal FastAPI microservice on `127.0.0.1:8080` with `/health` (liveness) and `
 ## Run
 
 ```bash
-./run.sh 12          # runs server.py — keeps running until Ctrl+C
+./run.sh 12          # runs lesson.py — starts server (Ctrl+C to stop)
+./run.sh 12 server   # alternate: runs server.py directly
 ./check.sh 12        # pytest with TestClient (no server needed)
 ```
 
@@ -22,8 +23,8 @@ Then run Step 11 client in another terminal: `./run.sh 11`
 
 | File | Purpose |
 |------|---------|
-| `server.py` | **Run target** for `./run.sh 12` |
-| `lesson.py` | Same server + teaching notes |
+| `lesson.py` | **Default** for `./run.sh 12` — teaching notes + uvicorn |
+| `server.py` | Thin entrypoint for `./run.sh 12 server` |
 | `exercise.py` | Your FastAPI endpoints |
 | `solution.py` | Reference app |
 | `test_lesson.py` | TestClient tests |

@@ -53,5 +53,9 @@ Copy this list into your notes or mark checkboxes here as you go.
 - [ ] Step 35 — Go worker pool
 - [ ] Step 36 — Go log processor
 
+## When you finish
+
+Read **[GUIDE.md](GUIDE.md)** — concepts, Java comparison, and real-world use cases.
+
 ## Final verification
 - [ ] `./check.sh all` passes

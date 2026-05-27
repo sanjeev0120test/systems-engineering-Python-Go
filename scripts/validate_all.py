@@ -54,16 +54,19 @@ LESSON_RUNS: dict[int, list[str]] = {
 
 REQUIRED_ROOT = [
     "START_HERE.md",
+    "GUIDE.md",
     "ROADMAP.md",
     "README.md",
     "setup.sh",
     "setup.ps1",
     "run.sh",
+    "run.ps1",
     "check.sh",
     "check.ps1",
     "requirements.txt",
     "pyproject.toml",
     "Makefile",
+    "docs/STEP_INDEX.md",
 ]
 
 REQUIRED_SAMPLE = [

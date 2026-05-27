@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run any practice step: ./run.sh <N> [lesson|exercise|solution]
+# Run any practice step: ./run.sh <N> [lesson|exercise|solution|server]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,10 +9,18 @@ STEP="${1:-}"
 MODE="${2:-lesson}"
 
 if [ -z "$STEP" ]; then
-  echo "Usage: ./run.sh <step-number> [lesson|exercise|solution]"
+  echo "Usage: ./run.sh <step-number> [lesson|exercise|solution|server]"
   echo "Example: ./run.sh 1"
   exit 1
 fi
+
+case "$MODE" in
+  lesson|exercise|solution|server) ;;
+  *)
+    echo "Invalid mode: $MODE (use lesson, exercise, solution, or server for step 12)"
+    exit 1
+    ;;
+esac
 
 if [ -d ".venv" ]; then
   # shellcheck disable=SC1091
@@ -22,14 +30,13 @@ fi
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 run_python() {
-  local script="$1"
-  shift
-  python "$script" "$@"
+  python "$1"
 }
 
 case "$STEP" in
   0)
     echo "Step 0 is setup only. Run: ./setup.sh && ./check.sh 0"
+    exit 1
     ;;
   1) run_python python/01_python_basics/step_01_variables/${MODE}.py ;;
   2) run_python python/01_python_basics/step_02_control_flow/${MODE}.py ;;
@@ -43,8 +50,7 @@ case "$STEP" in
   10) run_python python/05_subprocess_linux/${MODE}.py ;;
   11) run_python python/06_rest_api/client/${MODE}.py ;;
   12)
-    if [ "$MODE" = "lesson" ]; then
-      echo "Starting FastAPI server on http://127.0.0.1:8080 (Ctrl+C to stop)"
+    if [ "$MODE" = "server" ]; then
       run_python python/06_rest_api/server/server.py
     else
       run_python python/06_rest_api/server/${MODE}.py
@@ -69,23 +75,13 @@ case "$STEP" in
   29) run_python python/21_metrics_exporter/${MODE}.py ;;
   30) run_python python/22_distributed_system_basics/${MODE}.py ;;
   31) run_python python/25_mini_platform_engineering/${MODE}.py ;;
-  32)
-    (cd go/01_go_basics && go run .)
-    ;;
-  33)
-    (cd go/02_concurrency && go run .)
-    ;;
-  34)
-    (cd go/03_http_server && go run .)
-    ;;
-  35)
-    (cd go/04_worker_pool && go run .)
-    ;;
-  36)
-    (cd go/05_log_processor && go run .)
-    ;;
+  32) (cd go/01_go_basics && go run .) ;;
+  33) (cd go/02_concurrency && go run .) ;;
+  34) (cd go/03_http_server && go run .) ;;
+  35) (cd go/04_worker_pool && go run .) ;;
+  36) (cd go/05_log_processor && go run .) ;;
   *)
-    echo "Unknown step: $STEP (see START_HERE.md)"
+    echo "Unknown step: $STEP (see START_HERE.md or docs/STEP_INDEX.md)"
     exit 1
     ;;
 esac
