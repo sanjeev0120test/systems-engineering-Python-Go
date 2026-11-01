@@ -1,0 +1,65 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      github_actions:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
+    directory: "/go/01_go_basics"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      gomod:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
+    directory: "/go/02_concurrency"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      gomod:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
+    directory: "/go/03_http_server"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      gomod:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
+    directory: "/go/04_worker_pool"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      gomod:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
+    directory: "/go/05_log_processor"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      gomod:
+        patterns:
+          - "*"
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      pip:
+        patterns:
+          - "*"
