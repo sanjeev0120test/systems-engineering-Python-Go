@@ -4,6 +4,12 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       github_actions:
@@ -13,6 +19,12 @@ updates:
     directory: "/go/01_go_basics"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       gomod:
@@ -22,6 +34,12 @@ updates:
     directory: "/go/02_concurrency"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       gomod:
@@ -31,6 +49,12 @@ updates:
     directory: "/go/03_http_server"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       gomod:
@@ -40,6 +64,12 @@ updates:
     directory: "/go/04_worker_pool"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       gomod:
@@ -49,6 +79,12 @@ updates:
     directory: "/go/05_log_processor"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       gomod:
@@ -58,6 +94,12 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
     groups:
       pip:
