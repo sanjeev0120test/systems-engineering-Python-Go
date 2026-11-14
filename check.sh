@@ -90,10 +90,15 @@ case "$STEP" in
   34) go_test_step go/03_http_server && pass ;;
   35) go_test_step go/04_worker_pool && pass ;;
   36) go_test_step go/05_log_processor && pass ;;
+  37) go_test_step go/06_api_gateway && pass ;;
+  38) go_test_step go/07_resilient_client && pass ;;
+  39) go_test_step go/08_job_queue && pass ;;
+  40) go_test_step go/09_canary_analysis && pass ;;
+  41) go_test_step go/10_consistent_hash_lb && pass ;;
   all)
-    echo "Running all step checks (0-36) ..."
+    echo "Running all step checks (0-41) ..."
     failed=0
-    for step in $(seq 0 36); do
+    for step in $(seq 0 41); do
       echo "--- Step $step ---"
       if ! "$0" "$step"; then
         failed=1

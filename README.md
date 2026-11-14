@@ -13,7 +13,100 @@ Python-first (Steps 1–31). Go basics last (Steps 32–36). Everything runs on 
 
 Windows: `.\setup.ps1` → `.\check.ps1 0` → `.\run.ps1 1` → `.\check.ps1 1`
 
+Go on Windows (Steps 32–36): install Go once (`winget install GoLang.Go`), then `.\run.ps1 32` and `.\check.ps1 32` — no WSL required.
+
 **Every step is the same:** read `lesson.py` output → edit `exercise.py` → compare `solution.py` → `./check.sh N` must PASS.
+
+## Setup verification — confirm 100% ready before Step 1
+
+Run these after `setup.ps1` / `setup.sh`. Every command must succeed before you start learning.
+
+| Check | Windows | WSL/Linux |
+|-------|---------|-----------|
+| Step 0 env | `.\check.ps1 0` → **PASS** | `./check.sh 0` → **PASS** |
+| Full test suite | `.\check.ps1 all` → **ALL PYTHON + GO TESTS PASS** | `./check.sh all` |
+| 5-pass audit | `.\scripts\verify_setup.ps1` | `./scripts/verify_setup.sh` |
+| Maintainer cross-check | `python scripts\validate_all.py` | same |
+
+**What “ready” means on your machine:**
+
+| Component | Required | Verified by |
+|-----------|----------|-------------|
+| Python 3.11+ in `.venv` | All steps | `check.ps1 0` |
+| `requirements.txt` deps | All steps | imports in Step 0 check |
+| `PYTHONPATH` = repo root | All Python steps | set automatically in `run.ps1` / `check.ps1` |
+| Go 1.22+ | Steps 32–36 | `check.ps1 32` … `check.ps1 36` |
+| WSL2 Ubuntu | Optional — Step 10 Linux subprocess only | `wsl echo ok` (warn if missing) |
+| Sample data under `sample_data/` | Steps 7+ | Step 0 + verify script |
+
+**Run / compile a single file directly (when not using step helpers):**
+
+```powershell
+# Python — no compile; always use the venv Python + PYTHONPATH
+cd C:\dev\systems-engineering-Python-Go
+$env:PYTHONPATH = (Get-Location)
+.\.venv\Scripts\python.exe python\01_python_basics\step_01_variables\lesson.py
+
+# Go — run without compiling, or build a binary
+cd go\01_go_basics
+go run .                    # interpret-like run
+go build -o logproc.exe .   # compile to single binary
+.\logproc.exe               # run compiled output
+```
+
+## Expert: critical production concepts (do not skip)
+
+These are the ideas senior platform engineers expect you to internalize — mapped to this lab.
+
+### Observability trinity (Metrics + Logs + Traces)
+
+Production systems need **three correlated signals**, not just “is the server up?”:
+
+| Signal | What it answers | Lab step | Java equivalent |
+|--------|-----------------|----------|-----------------|
+| **Metrics** | How much / how fast / saturation? | Step 29 (`/metrics`) | Micrometer + Prometheus |
+| **Logs** | What happened on this request? | Step 9 (`trace_id` JSON logs) | SLF4J + MDC |
+| **Traces** | Where did latency accumulate? | Step 9 `trace_id` (correlation ID) | OpenTelemetry span ID |
+
+**Rule:** Every tool from Step 9 onward logs with `trace_id`. Metrics without logs tell you *something broke*; logs without trace IDs tell you *what* but not *which user journey*.
+
+### Timeouts, retries, and idempotency (the reliability triangle)
+
+| Pattern | When | Lab | Production mistake if skipped |
+|---------|------|-----|-------------------------------|
+| **Timeout** | Every network/subprocess call | Steps 10–11 | Hung cron jobs, stuck thread pools |
+| **Retry + backoff** | Transient failures only | Steps 11, 21 | Thundering herd on recovering service |
+| **Idempotency** | Retries on writes | Step 19 SQLite dedup | Duplicate charges, duplicate pages |
+
+**Expert rule:** Retry **reads** freely; retry **writes** only when idempotent (dedup key, idempotency token).
+
+### 12-factor config (`LAB_*` env vars)
+
+Steps 8 and 26 teach **config hierarchy**: YAML defaults → `LAB_*` env override → no code change per environment. Same pattern as Spring `application-prod.yml` + env vars. Never commit secrets; override at deploy time.
+
+### Concurrency decision (the #1 Python trap for Java devs)
+
+```
+CPU-bound  → multiprocessing or Go (Steps 32–36)   # GIL blocks Python threads
+I/O-bound  → ThreadPoolExecutor (Step 14) or asyncio (Step 15)
+Many probes → asyncio (Step 15)                     # lower memory than 500 threads
+Infra CLI   → Go single binary (Steps 32–36)        # no JVM, native parallelism
+```
+
+### Failure modes you must design for
+
+| Failure | Lab pattern | Production example |
+|---------|-------------|-------------------|
+| Dependency down | Circuit breaker (Step 21) | Stop calling dead payment API |
+| Noisy client | Rate limiter (Step 20) | Return 429 before OOM |
+| Job crash mid-run | File queue + DLQ (Step 22) | Replay failed report jobs |
+| Alert storm | SQLite dedup (Step 19) | One page per incident, not 500 |
+| Config drift | Step 26 diff | Prod YAML ≠ git → compliance fail |
+
+### SLI → SLO → error budget chain
+
+Step 18 computes **SLIs** (error rate, p95 latency from logs). Step 19 fires alerts when SLIs breach **SLO** thresholds in `rules.yaml`. In production, when the **error budget** is exhausted, stop risky releases — reliability beats features.
+
 
 ## Critical concepts only (what this lab covers)
 
@@ -28,6 +121,7 @@ Windows: `.\setup.ps1` → `.\check.ps1 0` → `.\run.ps1 1` → `.\check.ps1 1`
 | Reliability | 20–22 | rate limit, circuit breaker, job queue |
 | Platform sims | 23–31 | proxy, LB, scheduler, metrics, capstone pipeline |
 | Go basics | 32–36 | syntax, goroutines, HTTP, workers, log parser |
+| Go production | 37–41 | API gateway, retry + circuit breaker, job queue + DLQ, SLO burn rate + canary, consistent-hash LB |
 
 You already know Java. Each `lesson.py` has Java comparisons in comments — this README is your full concept guide.
 
@@ -579,6 +673,22 @@ http.ListenAndServe(":8081", mux)
 
 ---
 
+#### 4.5 Production Go use cases (Steps 37–41)
+
+Each module is standard-library only, runs a self-contained demo (`./run.sh N` starts local servers on random ports and exits), and ships a test suite (`./check.sh N`) with injectable clocks so time-based logic is tested deterministically.
+
+| Step | What you build | Production failure it prevents | Key techniques |
+|------|----------------|-------------------------------|----------------|
+| 37 | **API gateway** (`go/06_api_gateway`) | One tenant's retry loop starves everyone; a nil-map bug kills connections; a slow upstream ties up every goroutine; a 2 GB POST exhausts memory | Per-client token bucket → `429` + `Retry-After`; `/healthz` exempt from limits; `X-Request-ID` propagation; panic → JSON `500`; `http.TimeoutHandler`; `MaxBytesReader` → `413`; `DisallowUnknownFields`; Slowloris-safe `http.Server` timeouts; graceful `Shutdown`; idle-bucket eviction. `go run . serve` runs it long-lived on `:8090`. |
+| 38 | **Resilient HTTP client** (`go/07_resilient_client`) | Retry storms that hammer a recovering service; cascading failure when a dependency is down; retrying a `404` forever | Exponential backoff with **full jitter**; per-attempt timeout; `Permanent()` error classification (4xx never retried, never trips the breaker); circuit breaker closed → open → half-open with limited concurrent probes and generation counters so stale results can't corrupt state. |
+| 39 | **Background job queue** (`go/08_job_queue`) | Double-charging a customer on redelivery; deploys dropping in-flight jobs; one panicking job killing the worker pool | Idempotency keys; non-blocking `Enqueue` with `ErrQueueFull` backpressure; retries with backoff; dead-letter queue with last error; per-job `context` timeouts; panic recovery; `Shutdown(ctx)` drains, and on deadline moves unfinished work to the DLQ — nothing is silently lost. |
+| 40 | **SLO burn rate + canary judge** (`go/09_canary_analysis`) | Paging on noise; alerts that keep firing after recovery; promoting a release that regressed p99 for 2% of users | Google SRE Workbook multi-window burn rates (14.4× over 1h/5m, 6× over 6h/30m, 1× over 3d/6h); error-budget remaining; canary vs concurrent baseline; nearest-rank p99; **two-proportion z-test** so a 3-error blip yields `HOLD` instead of a false `ROLLBACK`. |
+| 41 | **Consistent-hash load balancer** (`go/10_consistent_hash_lb`) | Cache stampede when one node dies and `hash % N` reshuffles every user; flapping from a single dropped probe | Hash ring with 160 virtual nodes; adding a node moves ~1/N keys (tested); unhealthy nodes skipped without moving healthy users; `GetN` replica placement (Dynamo/Cassandra style); active health checks with rise/fall hysteresis; `httputil.ReverseProxy` with `X-Backend`, `502` on dial failure, `503` when all down. |
+
+**How they compose in a real platform:** a request enters the **gateway** (37), is routed by the **ring** (41) to a backend, which calls dependencies through the **resilient client** (38) and offloads slow work to the **job queue** (39). The **canary judge** (40) decides whether the new version of any of these ships.
+
+---
+
 ### 5. Architecture decision guide
 
 | Problem | Recommended in this lab | Step |
@@ -640,17 +750,20 @@ chmod +x setup.sh run.sh check.sh
 
 Follow [Full step index](#full-step-index-036) in order. Do not skip steps.
 
-### Windows PowerShell (Python Steps 1–31 only)
+### Windows PowerShell (Python Steps 1–31 + Go Steps 32–36)
 
 ```powershell
 cd C:\dev\systems-engineering-Python-Go
 .\setup.ps1
 .\check.ps1 0         # must print PASS
+.\scripts\verify_setup.ps1   # 5-pass audit — all OK before Step 1
 .\run.ps1 1
 .\check.ps1 1
+.\run.ps1 32          # Go — requires Go 1.22+ (winget install GoLang.Go)
+.\check.ps1 all       # full Python + Go suite
 ```
 
-For Linux subprocess modules (Step 10+) and Go (Steps 32–36), switch to WSL and use `./setup.sh` / `./run.sh` / `./check.sh`.
+For Linux subprocess modules (Step 10) if tests fail on Windows, install WSL and use `./setup.sh` / `./run.sh 10`.
 
 ---
 
@@ -694,7 +807,9 @@ systems-engineering-Python-Go/
 │   └── 25_mini_platform_engineering/  # Step 31 capstone
 ├── go/
 │   ├── 01_go_basics/         # Step 32
-│   └── 05_log_processor/     # Step 36
+│   ├── 05_log_processor/     # Step 36
+│   ├── 06_api_gateway/       # Step 37 — production use cases start here
+│   └── 10_consistent_hash_lb/  # Step 41
 └── sample_data/              # logs, configs, metrics, alert rules (local inputs)
     └── output/               # runtime files (gitignored)
 ```
@@ -749,8 +864,8 @@ config = load_service_config(sample_data_path("configs", "service.yaml"))
 | Tool | Required for | Install |
 |------|--------------|---------|
 | Python 3.11+ | All steps | [python.org](https://www.python.org/downloads/) or `sudo apt install python3 python3-venv python3-pip` |
-| WSL2 Ubuntu | Steps 10, 32–36 | `wsl --install` then Ubuntu |
-| Go 1.22+ | Steps 32–36 only | [go.dev/dl](https://go.dev/dl/) inside WSL |
+| Go 1.22+ | Steps 32–36 | Windows: `winget install GoLang.Go` · WSL/Linux: [go.dev/dl](https://go.dev/dl/) |
+| WSL2 Ubuntu | Optional — Step 10 Linux subprocess if native tests fail | `wsl --install` then Ubuntu |
 
 **Step 0 — one-time setup:**
 
@@ -777,13 +892,14 @@ Environment variables use the **`LAB_` prefix** (e.g. `LAB_ENVIRONMENT=prod`, `L
 | Command | Action |
 |---------|--------|
 | `./setup.sh` or `.\setup.ps1` | Create `.venv`, install deps (once) |
-| `./run.sh N` or `.\run.ps1 N` | Run step N lesson |
+| `.\scripts\verify_setup.ps1` or `./scripts/verify_setup.sh` | 5-pass full environment audit |
+| `./run.sh N` or `.\run.ps1 N` | Run step N lesson (Python 1–31, Go 32–36) |
 | `./run.sh N exercise` | Run your practice file |
 | `./run.sh N solution` | Run reference solution |
 | `./run.sh 12 server` | Run FastAPI server (Step 12) |
-| `./check.sh N` or `.\check.ps1 N` | Verify step N |
-| `./check.sh all` or `.\check.ps1 all` | Full Python test suite |
-| `python scripts/validate_all.py` | Maintainer cross-check |
+| `./check.sh N` or `.\check.ps1 N` | Verify step N (Python + Go on Windows) |
+| `./check.sh all` or `.\check.ps1 all` | Full Python + Go test suite |
+| `python scripts/validate_all.py` | Maintainer structure + pytest cross-check |
 
 ---
 
@@ -828,8 +944,13 @@ Environment variables use the **`LAB_` prefix** (e.g. `LAB_ENVIRONMENT=prod`, `L
 | 34 | Go HTTP server | `go/03_http_server/` | `./run.sh 34` | `./check.sh 34` |
 | 35 | Go worker pool | `go/04_worker_pool/` | `./run.sh 35` | `./check.sh 35` |
 | 36 | Go log processor | `go/05_log_processor/` | `./run.sh 36` | `./check.sh 36` |
+| 37 | Go API gateway (rate limit, timeouts, recovery) | `go/06_api_gateway/` | `./run.sh 37` | `./check.sh 37` |
+| 38 | Go resilient client (retry + circuit breaker) | `go/07_resilient_client/` | `./run.sh 38` | `./check.sh 38` |
+| 39 | Go job queue (idempotency, DLQ, drain) | `go/08_job_queue/` | `./run.sh 39` | `./check.sh 39` |
+| 40 | Go SLO burn rate + canary judge | `go/09_canary_analysis/` | `./run.sh 40` | `./check.sh 40` |
+| 41 | Go consistent-hash load balancer | `go/10_consistent_hash_lb/` | `./run.sh 41` | `./check.sh 41` |
 
-**Final verification:** `./check.sh all` (WSL, with Go installed for Steps 32–36)
+**Final verification:** `./check.sh all` (WSL, with Go installed for Steps 32–41)
 
 ---
 
@@ -1031,6 +1152,11 @@ Run in **WSL**: `./run.sh 32` … `./run.sh 36`. Each folder has `main.go`, `mai
 | 34 | HTTP server | Spring Boot embedded Tomcat | `net/http` + `ServeMux` | `go/03_http_server/main.go` — `HealthHandler`, `GET /health` |
 | 35 | Worker pool | fixed thread pool + queue | goroutines + buffered channels | `go/04_worker_pool/main.go` — `ParseLogLine()`, worker pool |
 | 36 | Log processor CLI | batch log analysis tool | file scan + concurrent parse | `go/05_log_processor/main.go` — `ParseAccessLog()` |
+| 37 | API gateway | Spring Cloud Gateway + Bucket4j | middleware chain, per-client token bucket, `http.TimeoutHandler`, `MaxBytesReader`, `slog` | `go/06_api_gateway/main.go` — `NewGateway()`, `RateLimit()` |
+| 38 | Resilient client | Resilience4j `@Retry` + `@CircuitBreaker` | full-jitter backoff, breaker state machine, permanent vs retryable errors | `go/07_resilient_client/main.go` — `Retry()`, `CircuitBreaker` |
+| 39 | Job queue | SQS consumer + DLQ | bounded channel, idempotency keys, retries, panic isolation, `Shutdown(ctx)` | `go/08_job_queue/main.go` — `Queue` |
+| 40 | Release safety | Kayenta canary judge | multi-window burn-rate alerts, nearest-rank p99, two-proportion z-test | `go/09_canary_analysis/main.go` — `EvaluateBurn()`, `AnalyzeCanary()` |
+| 41 | Sticky load balancer | Envoy ring-hash / HAProxy | consistent hashing + virtual nodes, health-check hysteresis, `httputil.ReverseProxy` | `go/10_consistent_hash_lb/main.go` — `Ring`, `HealthChecker`, `Router` |
 
 ### Go vs Java — error handling
 
@@ -1152,13 +1278,15 @@ Shared utilities live in `python/common/` — logging setup, config loader, path
 | Problem | Fix |
 |---------|-----|
 | `Run setup.ps1 first` | Run `.\setup.ps1` once |
+| `Go not found` (Steps 32–36) | `winget install GoLang.Go` then reopen terminal |
 | `python3 not found` (WSL) | `sudo apt update && sudo apt install -y python3 python3-venv python3-pip` |
-| `No module named pytest` | Run `./setup.sh` again |
+| `No module named pytest` | Run `./setup.sh` or `.\setup.ps1` again |
 | Step 10 fails on Windows | Use WSL — subprocess/Linux modules need Linux |
 | Step 12 blocks terminal | Normal — server runs until Ctrl+C; use 2nd terminal for `./run.sh 11` |
-| Go step fails on Windows | Use WSL — `wsl ./run.sh 32` |
+| WSL not responding | Optional for most steps; install with `wsl --install` for Step 10 |
 | Tests fail after edits | Run `./check.sh N` for that step only first |
 | Unknown step number | See [step index table](#full-step-index-036) |
+| Verify full environment | `.\scripts\verify_setup.ps1` or `./scripts/verify_setup.sh` |
 
 ---
 

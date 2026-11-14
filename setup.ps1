@@ -1,4 +1,4 @@
-# Step 0 - Windows helper (creates venv; use WSL for Linux/automation modules).
+# Step 0 - Windows helper (creates venv; Go steps 32-36 run natively when Go is installed).
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $Root
@@ -22,10 +22,24 @@ if (-not (Test-Path ".venv")) {
 
 Write-Host ""
 Write-Host "Windows venv ready." -ForegroundColor Green
-Write-Host "Next: .\check.ps1 0   (must print PASS)" -ForegroundColor Cyan
-Write-Host "Then open README.md and start Step 1 with .\run.ps1 1" -ForegroundColor Cyan
+
+$goPath = Get-Command go -ErrorAction SilentlyContinue
+if (-not $goPath) {
+    $goBin = "$env:ProgramFiles\Go\bin\go.exe"
+    if (Test-Path $goBin) { $goPath = Get-Item $goBin }
+}
+if ($goPath) {
+    Write-Host "Go: $(& $goPath.Source version 2>&1)" -ForegroundColor Green
+    Write-Host "Go steps 32-36: .\run.ps1 32  and  .\check.ps1 32" -ForegroundColor Cyan
+} else {
+    Write-Host "Go not found. Install for Steps 32-36:" -ForegroundColor Yellow
+    Write-Host "  winget install GoLang.Go" -ForegroundColor Yellow
+    Write-Host "  Or use WSL: wsl ./setup.sh && wsl ./check.sh 32" -ForegroundColor Yellow
+}
+
 Write-Host ""
-Write-Host "For Linux subprocess and Go steps, use WSL:" -ForegroundColor Yellow
-Write-Host "  wsl"
-Write-Host "  cd /mnt/c/dev/systems-engineering-Python-Go"
-Write-Host "  ./setup.sh && ./check.sh 0"
+Write-Host "Verify: .\check.ps1 0   (must print PASS)" -ForegroundColor Cyan
+Write-Host "Full audit: .\scripts\verify_setup.ps1" -ForegroundColor Cyan
+Write-Host "Start learning: .\run.ps1 1" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Note: Step 10 (Linux subprocess) needs WSL if tests fail on Windows." -ForegroundColor Yellow

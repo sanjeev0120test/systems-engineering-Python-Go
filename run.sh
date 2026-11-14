@@ -80,6 +80,11 @@ case "$STEP" in
   34) (cd go/03_http_server && go run .) ;;
   35) (cd go/04_worker_pool && go run .) ;;
   36) (cd go/05_log_processor && go run .) ;;
+  37) (cd go/06_api_gateway && go run .) ;;
+  38) (cd go/07_resilient_client && go run .) ;;
+  39) (cd go/08_job_queue && go run .) ;;
+  40) (cd go/09_canary_analysis && go run .) ;;
+  41) (cd go/10_consistent_hash_lb && go run .) ;;
   *)
     echo "Unknown step: $STEP (see README.md step index)"
     exit 1

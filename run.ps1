@@ -1,4 +1,4 @@
-# Windows run helper - mirrors run.sh for Python steps.
+# Windows run helper - Python steps 1-31 and Go steps 32-36 (when Go is installed).
 param(
     [Parameter(Mandatory = $true)]
     [string]$Step,
@@ -60,9 +60,39 @@ if ($Step -eq "0") {
     exit 1
 }
 
-if ($Step -match '^\d+$' -and [int]$Step -ge 32) {
-    Write-Host "Go steps 32-36: use WSL - wsl ./run.sh $Step"
-    exit 1
+$goDirs = @{
+    "32" = "go/01_go_basics"
+    "33" = "go/02_concurrency"
+    "34" = "go/03_http_server"
+    "35" = "go/04_worker_pool"
+    "36" = "go/05_log_processor"
+    "37" = "go/06_api_gateway"
+    "38" = "go/07_resilient_client"
+    "39" = "go/08_job_queue"
+    "40" = "go/09_canary_analysis"
+    "41" = "go/10_consistent_hash_lb"
+}
+
+if ($goDirs.ContainsKey($Step)) {
+    $goExe = Get-Command go -ErrorAction SilentlyContinue
+    if (-not $goExe) {
+        $goExe = Get-Command go -ErrorAction SilentlyContinue -Path @(
+            "$env:ProgramFiles\Go\bin\go.exe",
+            "${env:ProgramFiles(x86)}\Go\bin\go.exe"
+        )
+    }
+    if (-not $goExe) {
+        Write-Host "Go not found. Install Go 1.22+ or run: winget install GoLang.Go" -ForegroundColor Red
+        Write-Host "Alternative: wsl ./run.sh $Step" -ForegroundColor Yellow
+        exit 1
+    }
+    Push-Location (Join-Path $Root $goDirs[$Step])
+    try {
+        & $goExe.Source run .
+    } finally {
+        Pop-Location
+    }
+    exit $LASTEXITCODE
 }
 
 if (-not $paths.ContainsKey($Step)) {

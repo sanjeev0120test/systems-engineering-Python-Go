@@ -116,13 +116,18 @@ def main() -> None:
         "go/03_http_server",
         "go/04_worker_pool",
         "go/05_log_processor",
+        "go/06_api_gateway",
+        "go/07_resilient_client",
+        "go/08_job_queue",
+        "go/09_canary_analysis",
+        "go/10_consistent_hash_lb",
     ]:
         gd = ROOT / go_dir
         if not (gd / "main.go").exists():
             fail(f"Missing {go_dir}/main.go")
         if not (gd / "go.mod").exists():
             fail(f"Missing {go_dir}/go.mod")
-    ok("All 5 Go modules present")
+    ok("All 10 Go modules present")
 
     python_exe = ROOT / ".venv/Scripts/python.exe"
     if not python_exe.exists():

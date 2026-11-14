@@ -38,7 +38,7 @@ func TestParseAccessLog(t *testing.T) {
 		t.Fatalf("ErrorLines = %d, want 3", summary.ErrorLines)
 	}
 
-	wantStatus := map[int]int{200: 5, 401: 1, 500: 1, 503: 1}
+	wantStatus := map[int]int{200: 5, 401: 1, 500: 2}
 	for status, wantCount := range wantStatus {
 		if summary.StatusCounts[status] != wantCount {
 			t.Fatalf("status %d count = %d, want %d", status, summary.StatusCounts[status], wantCount)

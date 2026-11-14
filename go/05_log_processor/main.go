@@ -83,11 +83,13 @@ func ParseAccessLog(path string, workers int) (Summary, error) {
 		}()
 	}
 
+	var scanErr error
 	go func() {
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			jobs <- scanner.Text()
 		}
+		scanErr = scanner.Err()
 		close(jobs)
 		wg.Wait()
 		close(results)
@@ -107,8 +109,8 @@ func ParseAccessLog(path string, workers int) (Summary, error) {
 		}
 	}
 
-	if err := file.Err(); err != nil {
-		return Summary{}, err
+	if scanErr != nil {
+		return Summary{}, scanErr
 	}
 
 	return summary, nil
