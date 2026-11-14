@@ -263,6 +263,56 @@ func TestClientBreakerShieldsDeadDependency(t *testing.T) {
 	}
 }
 
+func TestParseRetryAfter(t *testing.T) {
+	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	cases := map[string]time.Duration{
+		"":                              0,
+		"7":                             7 * time.Second,
+		"-3":                            0,
+		"soon":                          0,
+		"Thu, 01 Jan 2026 00:00:30 GMT": 30 * time.Second,
+		"Wed, 31 Dec 2025 23:59:00 GMT": 0,
+	}
+	for in, want := range cases {
+		if got := ParseRetryAfter(in, now); got != want {
+			t.Fatalf("ParseRetryAfter(%q) = %v, want %v", in, got, want)
+		}
+	}
+}
+
+func TestRetryHonorsServerRetryAfterCappedAtMaxDelay(t *testing.T) {
+	var hits atomic.Int64
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch hits.Add(1) {
+		case 1:
+			w.Header().Set("Retry-After", "2")
+			w.WriteHeader(http.StatusTooManyRequests)
+		case 2:
+			w.Header().Set("Retry-After", "3600")
+			w.WriteHeader(http.StatusServiceUnavailable)
+		default:
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		}
+	}))
+	defer srv.Close()
+
+	var slept []time.Duration
+	c := newTestClient()
+	c.Policy = RetryPolicy{
+		MaxAttempts: 4,
+		BaseDelay:   10 * time.Millisecond,
+		MaxDelay:    5 * time.Second,
+		Sleep:       func(_ context.Context, d time.Duration) error { slept = append(slept, d); return nil },
+	}
+	var out map[string]string
+	if _, err := c.GetJSON(context.Background(), srv.URL, &out); err != nil {
+		t.Fatal(err)
+	}
+	if len(slept) != 2 || slept[0] != 2*time.Second || slept[1] != 5*time.Second {
+		t.Fatalf("slept = %v, want [2s 5s] (server hint, then capped at MaxDelay)", slept)
+	}
+}
+
 func TestClientPerAttemptTimeoutIsRetried(t *testing.T) {
 	var hits atomic.Int64
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

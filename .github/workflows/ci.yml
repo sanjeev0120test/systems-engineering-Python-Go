@@ -1,0 +1,68 @@
+name: ci
+
+# Tests gate auto-merge: without this workflow, "green checks" only meant
+# secrets/SBOM/scorecard passed and dependency bumps merged untested.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: python tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: pytest
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest python/ -q
+
+  go:
+    name: go tests (${{ matrix.go }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22.x", "stable"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l go)"
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt needed on:"; echo "$unformatted"; exit 1
+          fi
+      - name: vet and race-tested unit tests
+        run: |
+          set -euo pipefail
+          for mod in go/*/; do
+            echo "::group::$mod"
+            (cd "$mod" && go vet ./... && go test -race -count=1 ./...)
+            echo "::endgroup::"
+          done

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -196,6 +197,41 @@ func TestRejectedKeyCanBeRetriedLater(t *testing.T) {
 		t.Fatalf("a key rejected for backpressure must not be marked seen: %v", err)
 	}
 	go func() { <-started }()
+	drain(t, q)
+}
+
+func TestDedupKeysExpireAndMemoryIsBounded(t *testing.T) {
+	var mu sync.Mutex
+	clock := time.Unix(0, 0)
+	now := func() time.Time { mu.Lock(); defer mu.Unlock(); return clock }
+	advance := func(d time.Duration) { mu.Lock(); clock = clock.Add(d); mu.Unlock() }
+
+	cfg := fastConfig()
+	cfg.QueueSize = 5000
+	cfg.DedupTTL = time.Hour
+	cfg.Now = now
+	q := New(cfg, map[string]Handler{"noop": func(context.Context, Job) error { return nil }})
+
+	_ = q.Enqueue(Job{Type: "noop", IdempotencyKey: "order-1"})
+	advance(59 * time.Minute)
+	if err := q.Enqueue(Job{Type: "noop", IdempotencyKey: "order-1"}); !errors.Is(err, ErrDuplicate) {
+		t.Fatalf("within TTL err = %v, want ErrDuplicate", err)
+	}
+	advance(2 * time.Minute)
+	if err := q.Enqueue(Job{Type: "noop", IdempotencyKey: "order-1"}); err != nil {
+		t.Fatalf("after TTL err = %v, want accepted", err)
+	}
+
+	for i := range 2000 {
+		_ = q.Enqueue(Job{Type: "noop", IdempotencyKey: fmt.Sprintf("burst-%d", i)})
+	}
+	advance(2 * time.Hour)
+	for i := range dedupSweepEvery {
+		_ = q.Enqueue(Job{Type: "noop", IdempotencyKey: fmt.Sprintf("fresh-%d", i)})
+	}
+	if n := q.TrackedKeys(); n > dedupSweepEvery+1 {
+		t.Fatalf("tracked keys = %d: expired keys must be swept", n)
+	}
 	drain(t, q)
 }
 

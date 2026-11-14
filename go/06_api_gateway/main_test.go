@@ -36,6 +36,11 @@ func newTestGateway(t *testing.T, mutate func(*Config)) (http.Handler, *ClientLi
 	cfg.Now = clock.Now
 	cfg.RequestTimeout = 100 * time.Millisecond
 	cfg.SlowDelay = 2 * time.Second
+	cfg.APIKeys = map[string]string{
+		HashAPIKey("tenant-a"): "tenant-a",
+		HashAPIKey("tenant-b"): "tenant-b",
+		HashAPIKey("shared"):   "shared",
+	}
 	if mutate != nil {
 		mutate(&cfg)
 	}
@@ -109,6 +114,32 @@ func TestRateLimitPerClientWithRetryAfter(t *testing.T) {
 	}
 }
 
+func TestUnknownAPIKeyRejected(t *testing.T) {
+	h, l, _ := newTestGateway(t, nil)
+	rec := do(h, "GET", "/api/orders/1", "", map[string]string{"X-API-Key": "guessed"})
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rec.Code)
+	}
+	if l.Len() != 0 {
+		t.Fatal("rejected keys must not allocate rate-limit buckets")
+	}
+}
+
+func TestRotatingKeysCannotBypassLimit(t *testing.T) {
+	h, _, _ := newTestGateway(t, func(c *Config) { c.RateCapacity = 2; c.RatePerSec = 0.001 })
+	_ = do(h, "GET", "/api/orders/1", "", nil)
+	_ = do(h, "GET", "/api/orders/1", "", nil)
+	if rec := do(h, "GET", "/api/orders/1", "", nil); rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("anonymous caller status = %d, want 429 (limited by IP)", rec.Code)
+	}
+	for i := range 5 {
+		key := map[string]string{"X-API-Key": "fake-" + string(rune('a'+i))}
+		if rec := do(h, "GET", "/api/orders/1", "", key); rec.Code == http.StatusOK {
+			t.Fatal("a fabricated key must never get a fresh bucket")
+		}
+	}
+}
+
 func TestHealthzBypassesRateLimit(t *testing.T) {
 	h, _, _ := newTestGateway(t, func(c *Config) { c.RateCapacity = 1; c.RatePerSec = 0.001 })
 	for i := range 20 {
@@ -175,7 +206,7 @@ func TestCreateOrderValidation(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			rec := do(h, "POST", "/api/orders", tc.body, map[string]string{"X-API-Key": tc.name})
+			rec := do(h, "POST", "/api/orders", tc.body, nil)
 			if rec.Code != tc.want {
 				t.Fatalf("status = %d, want %d (body=%s)", rec.Code, tc.want, rec.Body.String())
 			}

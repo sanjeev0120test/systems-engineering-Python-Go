@@ -56,7 +56,13 @@ type Config struct {
 	MaxAttempts int
 	JobTimeout  time.Duration
 	RetryDelay  func(attempt int) time.Duration
+	// DedupTTL bounds idempotency memory: keys older than this are forgotten,
+	// so it must exceed the longest window in which a producer may redeliver.
+	DedupTTL time.Duration
+	Now      func() time.Time
 }
+
+const dedupSweepEvery = 1024
 
 // ExponentialDelay returns base*2^(attempt-1), capped at max.
 func ExponentialDelay(base, max time.Duration) func(int) time.Duration {
@@ -86,11 +92,12 @@ type Queue struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	mu      sync.Mutex
-	seen    map[string]struct{}
-	dlq     []Job
-	closed  bool
-	stopped bool
+	mu         sync.Mutex
+	seen       map[string]time.Time
+	sinceSweep int
+	dlq        []Job
+	closed     bool
+	stopped    bool
 
 	workers sync.WaitGroup
 	pending sync.WaitGroup
@@ -115,6 +122,12 @@ func New(cfg Config, handlers map[string]Handler) *Queue {
 	if cfg.RetryDelay == nil {
 		cfg.RetryDelay = ExponentialDelay(100*time.Millisecond, 10*time.Second)
 	}
+	if cfg.DedupTTL <= 0 {
+		cfg.DedupTTL = 24 * time.Hour
+	}
+	if cfg.Now == nil {
+		cfg.Now = time.Now
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	q := &Queue{
 		cfg:      cfg,
@@ -122,7 +135,7 @@ func New(cfg Config, handlers map[string]Handler) *Queue {
 		jobs:     make(chan Job, cfg.QueueSize),
 		ctx:      ctx,
 		cancel:   cancel,
-		seen:     make(map[string]struct{}),
+		seen:     make(map[string]time.Time),
 	}
 	for range cfg.Workers {
 		q.workers.Add(1)
@@ -144,8 +157,10 @@ func (q *Queue) Enqueue(job Job) error {
 		q.rejected.Add(1)
 		return fmt.Errorf("%w: %q", ErrUnknownJobType, job.Type)
 	}
+	now := q.cfg.Now()
+	q.sweepSeen(now)
 	if job.IdempotencyKey != "" {
-		if _, dup := q.seen[job.IdempotencyKey]; dup {
+		if at, dup := q.seen[job.IdempotencyKey]; dup && now.Sub(at) < q.cfg.DedupTTL {
 			q.duplicates.Add(1)
 			return ErrDuplicate
 		}
@@ -159,10 +174,32 @@ func (q *Queue) Enqueue(job Job) error {
 		return ErrQueueFull
 	}
 	if job.IdempotencyKey != "" {
-		q.seen[job.IdempotencyKey] = struct{}{}
+		q.seen[job.IdempotencyKey] = now
 	}
 	q.enqueued.Add(1)
 	return nil
+}
+
+// sweepSeen amortizes expiry: one O(n) pass every dedupSweepEvery enqueues.
+// Caller holds q.mu.
+func (q *Queue) sweepSeen(now time.Time) {
+	q.sinceSweep++
+	if q.sinceSweep < dedupSweepEvery {
+		return
+	}
+	q.sinceSweep = 0
+	for key, at := range q.seen {
+		if now.Sub(at) >= q.cfg.DedupTTL {
+			delete(q.seen, key)
+		}
+	}
+}
+
+// TrackedKeys reports how many idempotency keys are held in memory.
+func (q *Queue) TrackedKeys() int {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return len(q.seen)
 }
 
 func (q *Queue) worker() {

@@ -76,6 +76,26 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: gomod
+    directories:
+      - "/go/06_api_gateway"
+      - "/go/07_resilient_client"
+      - "/go/08_job_queue"
+      - "/go/09_canary_analysis"
+      - "/go/10_consistent_hash_lb"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    open-pull-requests-limit: 5
+    groups:
+      gomod-production:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
     directory: "/go/05_log_processor"
     schedule:
       interval: weekly

@@ -18,7 +18,7 @@ echo "Python version: $PY_VERSION"
 python3 -c 'import sys; assert sys.version_info >= (3, 11), "Python 3.11+ required"'
 
 if ! command -v go >/dev/null 2>&1; then
-  echo "WARN: go not found (needed for Steps 32-36). Install Go 1.22+ when ready."
+  echo "WARN: go not found (needed for Steps 32-41). Install Go 1.22+ when ready."
 else
   echo "Go version: $(go version)"
 fi

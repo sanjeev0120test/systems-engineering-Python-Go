@@ -13,6 +13,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -42,9 +43,36 @@ func IsPermanent(err error) bool {
 }
 
 // StatusError is an unexpected HTTP status from the dependency.
-type StatusError struct{ Code int }
+type StatusError struct {
+	Code       int
+	RetryAfter time.Duration
+}
 
 func (e *StatusError) Error() string { return fmt.Sprintf("unexpected status %d", e.Code) }
+
+// RetryAfterDelay exposes the server's Retry-After hint to Retry.
+func (e *StatusError) RetryAfterDelay() time.Duration { return e.RetryAfter }
+
+type retryAfterHinter interface{ RetryAfterDelay() time.Duration }
+
+// ParseRetryAfter accepts both RFC 9110 forms: delay-seconds or an HTTP-date.
+func ParseRetryAfter(v string, now time.Time) time.Duration {
+	if v == "" {
+		return 0
+	}
+	if secs, err := strconv.Atoi(v); err == nil {
+		if secs < 0 {
+			return 0
+		}
+		return time.Duration(secs) * time.Second
+	}
+	if at, err := http.ParseTime(v); err == nil {
+		if d := at.Sub(now); d > 0 {
+			return d
+		}
+	}
+	return 0
+}
 
 // ---------------------------------------------------------------------------
 // Circuit breaker
@@ -264,7 +292,15 @@ func Retry(ctx context.Context, p RetryPolicy, fn func(ctx context.Context) erro
 		if attempt == p.MaxAttempts-1 {
 			break
 		}
-		if serr := sleep(ctx, p.Backoff(attempt)); serr != nil {
+		delay := p.Backoff(attempt)
+		var hint retryAfterHinter
+		if errors.As(err, &hint) && hint.RetryAfterDelay() > delay {
+			delay = hint.RetryAfterDelay()
+			if p.MaxDelay > 0 && delay > p.MaxDelay {
+				delay = p.MaxDelay
+			}
+		}
+		if serr := sleep(ctx, delay); serr != nil {
 			return attempt + 1, serr
 		}
 	}
@@ -308,7 +344,7 @@ func (c *Client) once(ctx context.Context, url string, out any) error {
 	switch {
 	case resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500:
 		_, _ = io.Copy(io.Discard, resp.Body)
-		return &StatusError{Code: resp.StatusCode}
+		return &StatusError{Code: resp.StatusCode, RetryAfter: ParseRetryAfter(resp.Header.Get("Retry-After"), time.Now())}
 	case resp.StatusCode >= 400:
 		_, _ = io.Copy(io.Discard, resp.Body)
 		return Permanent(&StatusError{Code: resp.StatusCode})

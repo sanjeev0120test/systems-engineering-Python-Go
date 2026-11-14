@@ -1,4 +1,4 @@
-# Step 0 - Windows helper (creates venv; Go steps 32-36 run natively when Go is installed).
+# Step 0 - Windows helper (creates venv; Go steps 32-41 run natively when Go is installed).
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $Root
@@ -30,9 +30,9 @@ if (-not $goPath) {
 }
 if ($goPath) {
     Write-Host "Go: $(& $goPath.Source version 2>&1)" -ForegroundColor Green
-    Write-Host "Go steps 32-36: .\run.ps1 32  and  .\check.ps1 32" -ForegroundColor Cyan
+    Write-Host "Go steps 32-41: .\run.ps1 32  and  .\check.ps1 32" -ForegroundColor Cyan
 } else {
-    Write-Host "Go not found. Install for Steps 32-36:" -ForegroundColor Yellow
+    Write-Host "Go not found. Install for Steps 32-41:" -ForegroundColor Yellow
     Write-Host "  winget install GoLang.Go" -ForegroundColor Yellow
     Write-Host "  Or use WSL: wsl ./setup.sh && wsl ./check.sh 32" -ForegroundColor Yellow
 }

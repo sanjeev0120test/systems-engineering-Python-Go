@@ -1,4 +1,4 @@
-# Windows check helper - Python steps 0-31 and Go steps 32-36.
+# Windows check helper - Python steps 0-31 and Go steps 32-41.
 param(
     [Parameter(Mandatory = $true)]
     [string]$Step
@@ -102,7 +102,7 @@ if ($Step -eq "all") {
         }
         Write-Host "ALL PYTHON + GO TESTS PASS" -ForegroundColor Green
     } else {
-        Write-Host "ALL PYTHON TESTS PASS (Go steps 32-36: install Go or use WSL ./check.sh N)" -ForegroundColor Green
+        Write-Host "ALL PYTHON TESTS PASS (Go steps 32-41: install Go or use WSL ./check.sh N)" -ForegroundColor Green
     }
     exit 0
 }

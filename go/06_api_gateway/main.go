@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -141,12 +142,56 @@ func Chain(h http.Handler, mws ...Middleware) http.Handler {
 
 type ctxKey string
 
-const requestIDKey ctxKey = "request_id"
+const metaKey ctxKey = "request_meta"
+
+// requestMeta is shared by pointer so inner middleware (auth) can enrich what
+// outer middleware (access log) reports after the handler returns.
+type requestMeta struct {
+	id     string
+	tenant string
+}
+
+func metaFrom(ctx context.Context) *requestMeta {
+	m, _ := ctx.Value(metaKey).(*requestMeta)
+	return m
+}
 
 // RequestIDFrom returns the correlation ID stored by RequestID.
 func RequestIDFrom(ctx context.Context) string {
-	id, _ := ctx.Value(requestIDKey).(string)
-	return id
+	if m := metaFrom(ctx); m != nil {
+		return m.id
+	}
+	return ""
+}
+
+// HashAPIKey is how keys are stored: the gateway never holds plaintext secrets.
+func HashAPIKey(key string) string {
+	sum := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(sum[:])
+}
+
+// Authenticate resolves X-API-Key to a tenant. Unknown keys get 401 so callers
+// cannot mint fresh rate-limit buckets by rotating made-up keys. Requests with
+// no key are anonymous and rate limited by IP. keysByHash maps HashAPIKey → tenant.
+func Authenticate(keysByHash map[string]string) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			key := r.Header.Get("X-API-Key")
+			if key == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			tenant, ok := keysByHash[HashAPIKey(key)]
+			if !ok {
+				writeJSON(w, http.StatusUnauthorized, errBody("invalid API key"))
+				return
+			}
+			if m := metaFrom(r.Context()); m != nil {
+				m.tenant = tenant
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func newID() string {
@@ -163,7 +208,7 @@ func RequestID(next http.Handler) http.Handler {
 			id = newID()
 		}
 		w.Header().Set("X-Request-ID", id)
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), requestIDKey, id)))
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), metaKey, &requestMeta{id: id})))
 	})
 }
 
@@ -233,10 +278,12 @@ func Recover(logger *slog.Logger) Middleware {
 	}
 }
 
-// ClientKey identifies the caller: API key first, then remote IP.
+// ClientKey identifies the caller: authenticated tenant first, then remote IP.
+// X-Forwarded-For is deliberately ignored: it is client-controlled and may only
+// be trusted when the immediate peer is a known proxy.
 func ClientKey(r *http.Request) string {
-	if key := r.Header.Get("X-API-Key"); key != "" {
-		return "key:" + key
+	if m := metaFrom(r.Context()); m != nil && m.tenant != "" {
+		return "tenant:" + m.tenant
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
@@ -275,6 +322,7 @@ type Config struct {
 	RequestTimeout time.Duration
 	MaxBodyBytes   int64
 	SlowDelay      time.Duration
+	APIKeys        map[string]string // HashAPIKey(key) → tenant
 	Now            func() time.Time
 }
 
@@ -357,7 +405,7 @@ func NewGateway(cfg Config, logger *slog.Logger) (http.Handler, *ClientLimiter) 
 	})
 	root.Handle("/", limited)
 
-	return Chain(root, RequestID, AccessLog(logger), Recover(logger)), limiter
+	return Chain(root, RequestID, AccessLog(logger), Recover(logger), Authenticate(cfg.APIKeys)), limiter
 }
 
 // NewServer applies the timeouts every internet-facing Go server needs
@@ -381,6 +429,10 @@ func runDemo() error {
 	cfg.RatePerSec = 1
 	cfg.RequestTimeout = 300 * time.Millisecond
 	cfg.SlowDelay = time.Second
+	cfg.APIKeys = map[string]string{}
+	for _, tenant := range []string{"tenant-a", "tenant-b", "tenant-c", "tenant-d"} {
+		cfg.APIKeys[HashAPIKey(tenant)] = tenant
+	}
 	handler, _ := NewGateway(cfg, logger)
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
@@ -418,6 +470,8 @@ func runDemo() error {
 	}
 	fmt.Println("\n[2] tenant-b has its own bucket — not affected by tenant-a")
 	call("GET", "/api/orders/7", "", "tenant-b")
+	fmt.Println("    a made-up key cannot mint a fresh bucket")
+	call("GET", "/api/orders/7", "", "rotated-key-123")
 	fmt.Println("\n[3] Health checks bypass the limiter")
 	call("GET", "/healthz", "", "tenant-a")
 	fmt.Println("\n[4] Validation, unknown fields, and a valid create")

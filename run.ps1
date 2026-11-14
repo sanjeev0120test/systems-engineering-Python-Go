@@ -1,4 +1,4 @@
-# Windows run helper - Python steps 1-31 and Go steps 32-36 (when Go is installed).
+# Windows run helper - Python steps 1-31 and Go steps 32-41 (when Go is installed).
 param(
     [Parameter(Mandatory = $true)]
     [string]$Step,
